@@ -48,6 +48,13 @@ int main()
         if (!markerIds.empty()) {
             aruco::drawDetectedMarkers(frame, markerCorners, markerIds);
 
+            cout << "IDs : ";
+            for(int i=0; i< markerIds.size(); i++) {
+                cout << markerIds[i] << ", ";
+            }
+            cout << endl;
+
+
             for (size_t i = 0; i < markerIds.size(); ++i) {
                 // Définir les points 3D du marqueur dans son référentiel
                 float markerLength = 0.1f; // en mètres
@@ -64,6 +71,18 @@ int main()
                 if (success) {
                     // Dessiner les axes du marqueur
                     drawFrameAxes(frame, cameraMatrix, distCoeffs, rvec, tvec, markerLength * 0.5f);
+
+
+
+
+                    //calcul de la distance entre un tag et la caméra
+
+                    double distance = cv::norm(tvec);
+
+                    stringstream dist;
+                    dist << "distance: " << fixed << setprecision(2) << distance << "cm" << endl;
+                    putText(frame, dist.str(),Point(10,60 + 30 * i),FONT_HERSHEY_SIMPLEX,0.8,Scalar(255,0,0),2);
+
 
 
                     Mat rotationMatrix;
@@ -103,6 +122,9 @@ int main()
                         << cameraPosition.at<double>(2) << "] mm";
                     cv::putText(frame, oss.str(), cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX,
                                 0.6, cv::Scalar(0, 255, 0), 2);
+
+
+
 
 
 
