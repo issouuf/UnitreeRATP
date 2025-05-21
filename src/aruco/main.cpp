@@ -72,15 +72,35 @@ int main()
                     // Dessiner les axes du marqueur
                     drawFrameAxes(frame, cameraMatrix, distCoeffs, rvec, tvec, markerLength * 0.5f);
 
+                    //putText ordre des couleurs: (B,G,R)
 
 
+                    //calcul de la distance entre un tag et la caméra en m
 
-                    //calcul de la distance entre un tag et la caméra
+                    double distance = norm(tvec); // distance en m
+                    double rotation = norm(rvec); //
 
-                    double distance = cv::norm(tvec);
+                    double distanceCM = distance * 100;
+
+                    cout << distanceCM << endl;
+
+                    //affichage d'un texte si un obstacle est détecté à 30cm ou moins sinon affichage RAS
+                    if(distanceCM < 30) {
+                        stringstream stop;
+                        stop << "STOP obstacle detecte" << fixed << endl;
+                        putText(frame, stop.str(),Point(10,90 + 30 * i),FONT_HERSHEY_SIMPLEX,0.8,Scalar(0,0,255),2);
+                    }else {
+                        stringstream go;
+                        go << "RAS" << fixed << endl;
+                        putText(frame, go.str(),Point(10,90 + 30 * i),FONT_HERSHEY_SIMPLEX,0.8,Scalar(0,255,0),2);
+
+                    }
+
+
 
                     stringstream dist;
-                    dist << "distance: " << fixed << setprecision(2) << distance << "cm" << endl;
+                    dist << "distance: " << fixed << setprecision(2) << distanceCM << "cm" << endl; //fonctionnel
+                    //dist << "rotation " << fixed << setprecision(2) << rotation * 180 /CV_PI << "deg" << endl; //fonctionnel
                     putText(frame, dist.str(),Point(10,60 + 30 * i),FONT_HERSHEY_SIMPLEX,0.8,Scalar(255,0,0),2);
 
 
