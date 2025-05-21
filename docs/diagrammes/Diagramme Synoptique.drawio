@@ -1,0 +1,196 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64; rv:138.0) Gecko/20100101 Firefox/138.0" version="27.0.6">
+  <diagram name="Page-1" id="dajrDrvYgFbqzHSubukw">
+    <mxGraphModel dx="2935" dy="1283" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-30" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="460" y="990" width="380" height="460" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-61" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="1130" width="340" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-24" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="760" y="180" width="170" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-2" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="-170" y="60" width="650" height="600" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-1" target="FyL3BDaeVtOsizXlBfeX-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-1" value="&lt;div&gt;Module Caméra USB&lt;/div&gt;&lt;div&gt;Infrarouge&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="-130" y="80" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-3" target="FyL3BDaeVtOsizXlBfeX-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-3" value="RP Lidar A2" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="-130" y="345" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-4" value="&lt;b&gt;&lt;font style=&quot;font-size: 25px;&quot;&gt;Raspberry Pi 5&lt;/font&gt;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="70" y="620" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-49" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-6" target="FyL3BDaeVtOsizXlBfeX-40">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-6" value="Détection des tags Aruco via OpenCV" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="20" y="80" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;strokeWidth=5;fillColor=#cce5ff;strokeColor=light-dark(#36393D,#0000CC);" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-8" target="FyL3BDaeVtOsizXlBfeX-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-70" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-8" target="FyL3BDaeVtOsizXlBfeX-69">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-8" value="Client MQTT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cdeb8b;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="340" y="210" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-10" target="FyL3BDaeVtOsizXlBfeX-37">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-10" target="FyL3BDaeVtOsizXlBfeX-41">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-10" value="Récupération de la distance des objets autour du robot" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="20" y="345" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-13" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="750" y="140" width="390" height="310" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-14" value="&lt;b&gt;&lt;font style=&quot;font-size: 25px;&quot;&gt;Unitree Go 1&lt;/font&gt;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="890" y="400" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;strokeWidth=5;strokeColor=light-dark(#36393D,#0000CC);" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-16" target="FyL3BDaeVtOsizXlBfeX-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-16" target="FyL3BDaeVtOsizXlBfeX-26">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-16" value="Serveur MQTT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cdeb8b;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="790" y="210" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-18" value="&lt;font style=&quot;font-size: 17px;&quot;&gt;&lt;b&gt;Commande de mouvement&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="530" y="170" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-20" value="&lt;b&gt;&lt;font style=&quot;font-size: 25px;&quot;&gt;Raspberry Pi 3&lt;/font&gt;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="755" y="290" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-25" value="&lt;font style=&quot;font-size: 17px;&quot;&gt;&lt;b&gt;Etat du Robot&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="530" y="260" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-26" target="FyL3BDaeVtOsizXlBfeX-28">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-26" value="Traitement de la commande de mouvement" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="980" y="210" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-28" value="STM32 de contrôle des moteurs" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="980" y="310" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-31" value="&lt;b&gt;&lt;font style=&quot;font-size: 25px;&quot;&gt;Téléphone Client&lt;/font&gt;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="543" y="1410" width="210" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-67" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-37" target="FyL3BDaeVtOsizXlBfeX-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-37" value="Choix de la commande du robot (arrêt ou marche)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="170" y="345" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-48" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-40" target="FyL3BDaeVtOsizXlBfeX-46">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-40" value="Récupération du robot de la postion par rapport au tag" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="170" y="80" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-47" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-41" target="FyL3BDaeVtOsizXlBfeX-46">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-41" value="Calcul du compensement de la position" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="20" y="210" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-50" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-46" target="FyL3BDaeVtOsizXlBfeX-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-46" value="Calcul du mouvement du chien robot" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="170" y="210" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-55" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-51" target="FyL3BDaeVtOsizXlBfeX-54">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-51" value="Module GPS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="-130" y="540" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-59" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=5;dashed=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;dashPattern=8 8;strokeColor=light-dark(#36393D,#0000CC);" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-52" target="FyL3BDaeVtOsizXlBfeX-65">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="550" y="790" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-52" value="Module SIM" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="340" y="540" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-56" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-54" target="FyL3BDaeVtOsizXlBfeX-52">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-54" value="Récupération la position GPS du robot" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="100" y="540" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-57" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-31" target="FyL3BDaeVtOsizXlBfeX-31">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-60" value="Affichage de la position GPS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="493" y="1190" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-62" value="&lt;font style=&quot;font-size: 17px;&quot;&gt;&lt;b&gt;&lt;u&gt;Application Android&lt;/u&gt;&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="543" y="1140" width="210" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-83" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-65" target="FyL3BDaeVtOsizXlBfeX-60">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-65" value="Carte SIM" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="493" y="1020" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-78" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-66" target="FyL3BDaeVtOsizXlBfeX-75">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-66" value="Carte Wi-Fi" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="670" y="1020" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-73" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;dashed=1;dashPattern=8 8;strokeWidth=5;strokeColor=light-dark(#36393D,#0000CC);" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-69" target="FyL3BDaeVtOsizXlBfeX-71">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-69" value="Carte Wi-Fi" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffcccc;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="340" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-74" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=light-dark(#36393D,#0000CC);strokeWidth=5;dashed=1;dashPattern=8 8;" edge="1" parent="1" source="FyL3BDaeVtOsizXlBfeX-71" target="FyL3BDaeVtOsizXlBfeX-66">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-71" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="620" y="680" width="220" height="95" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-72" value="&lt;b&gt;&lt;font style=&quot;font-size: 25px;&quot;&gt;Routeur Wi-Fi&lt;/font&gt;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="640" y="715" width="180" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-75" value="Affichage du flux vidéo du robot" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="670" y="1190" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-76" value="Affichage du mouvement actuel" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="493" y="1300" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-82" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;endArrow=none;startFill=1;startArrow=block;" edge="1" parent="1" target="FyL3BDaeVtOsizXlBfeX-66">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="790" y="1330" as="sourcePoint" />
+            <mxPoint x="850" y="1080" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="810" y="1330" />
+              <mxPoint x="810" y="1050" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="FyL3BDaeVtOsizXlBfeX-77" value="Affichage de l&#39;état du robot" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cce5ff;strokeColor=#36393d;" vertex="1" parent="1">
+          <mxGeometry x="670" y="1300" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
