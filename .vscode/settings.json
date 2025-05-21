@@ -1,0 +1,6 @@
+{
+    "cmake.sourceDirectory": "/home/pi/UnitreeRATP/src/mqtt",
+    "files.associations": {
+        "iostream": "cpp"
+    }
+}
