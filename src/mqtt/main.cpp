@@ -1,10 +1,8 @@
 #include <chrono>
-
 #include <iostream>
 #include <string>
-#include <thread>
 #include <mqtt/async_client.h>
-
+#include <thread>
 #include <ncurses.h>
 
 using namespace std;
@@ -70,7 +68,44 @@ struct Topics
             };
         };
     };
+    struct face_light 
+    {
+        struct Publishers 
+        {
+            struct color 
+            {
+                static inline const string Name = "face_light/color";
+                static inline constexpr const unsigned char QOS = 0;
+                
+                static inline constexpr const unsigned char BlueColor[3] = { 0x00, 0x00, 0xFF } ;
+                static inline constexpr const unsigned char RedColor[3] = { 0xFF, 0x00, 0x00 } ;
+
+                static void cbPublishMessage(mqtt::async_client &mqttClient, const unsigned char color[3] = BlueColor) 
+                {
+                    auto pubmsg = mqtt::make_message(Name, color, 3);
+                    pubmsg->set_qos(QOS);
+                    mqttClient.publish(pubmsg)->wait_for(PUBLISH_TIMEOUT);
+                }
+            };
+        };
+    };
 };
+
+
+static void changeHeadColorThread(mqtt::async_client &mqttClient, int sleepTimeMillis = 1000) 
+{
+    while (true) 
+    {
+        if (mqttClient.is_connected()) 
+        {
+            Topics::face_light::Publishers::color::cbPublishMessage(mqttClient, Topics::face_light::Publishers::color::BlueColor);
+            this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMillis));
+            Topics::face_light::Publishers::color::cbPublishMessage(mqttClient, Topics::face_light::Publishers::color::RedColor);
+            this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMillis));
+        }
+    } 
+}
+
 
 /* 1er param : Mouvement Gauche ou Droite
     -1 = Gauche à fond (~1m)
@@ -101,6 +136,8 @@ int main(int argc, char *argv[])
         conntok->wait();
         cout << "Connected !" << endl;
 
+        thread lightsThread(changeHeadColorThread, std::ref(client), 1000);
+
         Topics::controller::Publishers::action::cbPublishMessage(client, Topics::controller::Publishers::action::Payloads::Walk);
 
         initscr();
@@ -127,6 +164,7 @@ int main(int argc, char *argv[])
             }
         }
         
+        lightsThread.join();
 
         // Disconnect
         cout << "\nDisconnecting..." << endl;
