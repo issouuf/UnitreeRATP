@@ -78,14 +78,14 @@ int main()
                     //calcul de la distance entre un tag et la caméra en m
 
                     double distance = norm(tvec); // distance en m
-                    double rotation = norm(rvec); //
+                    double rotation = norm(rvec); // angle en rad
 
-                    double distanceCM = distance * 100;
+                    double distanceCM = distance * 100; //distance en cm
 
-                    cout << distanceCM << endl;
+                    constexpr int distLimite = 50;
 
                     //affichage d'un texte si un obstacle est détecté à 30cm ou moins sinon affichage RAS
-                    if(distanceCM < 30) {
+                    if(distanceCM < distLimite) {
                         stringstream stop;
                         stop << "STOP obstacle detecte" << fixed << endl;
                         putText(frame, stop.str(),Point(10,90 + 30 * i),FONT_HERSHEY_SIMPLEX,0.8,Scalar(0,0,255),2);
@@ -98,10 +98,11 @@ int main()
 
 
 
-                    stringstream dist;
+                    stringstream dist, rota;
                     dist << "distance: " << fixed << setprecision(2) << distanceCM << "cm" << endl; //fonctionnel
-                    //dist << "rotation " << fixed << setprecision(2) << rotation * 180 /CV_PI << "deg" << endl; //fonctionnel
-                    putText(frame, dist.str(),Point(10,60 + 30 * i),FONT_HERSHEY_SIMPLEX,0.8,Scalar(255,0,0),2);
+                    putText(frame, dist.str(),Point(10,30 + 30 * i),FONT_HERSHEY_SIMPLEX,0.8,Scalar(255,0,0),2);
+                    rota << "rotation " << fixed << setprecision(2) << rotation * 180 /CV_PI << "deg" << endl; //fonctionnel
+                    putText(frame, rota.str(),Point(10,60 + 30 * i),FONT_HERSHEY_SIMPLEX,0.8,Scalar(255,0,0),2);
 
 
 
@@ -135,7 +136,7 @@ int main()
                     ss << "angle Z: " << fixed << setprecision(2) << angle_deg << "deg" << endl;
                     //putText(frame, ss.str(),Point(10,30 + 30 * i),FONT_HERSHEY_SIMPLEX,0.8,Scalar(255,0,0),2);
 
-
+                    /*
                     std::ostringstream oss;
                     oss << "Position: [" << cameraPosition.at<double>(0) << ", "
                         << cameraPosition.at<double>(1) << ", "
@@ -143,7 +144,7 @@ int main()
                     cv::putText(frame, oss.str(), cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX,
                                 0.6, cv::Scalar(0, 255, 0), 2);
 
-
+                    */
 
 
 
