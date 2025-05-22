@@ -1,17 +1,24 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
-# Set the project name and version
-project(mqtt VERSION 1.0)
+project(mqttLidar LANGUAGES CXX)
 
-# Specify the C++ standard
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Add the paho submodule
-add_subdirectory(paho/build/include)
+find_package(PahoMqttCpp REQUIRED)
 
-# Add the executable
-add_executable(mqtt main.cpp)
 
-# Link the Paho MQTT C++ library
-target_link_libraries(mqtt paho-mqttpp3 paho-mqtt3as)
+add_executable(mqttLidar main.cpp)
+
+
+# Lier les bibliothèques
+target_link_libraries(mqttLidar
+    PahoMqttCpp::paho-mqttpp3
+)
+
+
+include(GNUInstallDirs)
+install(TARGETS mqttLidar
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
