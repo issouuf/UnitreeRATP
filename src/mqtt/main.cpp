@@ -1,8 +1,11 @@
 #include <chrono>
+
 #include <iostream>
 #include <string>
 #include <thread>
 #include <mqtt/async_client.h>
+
+#include <ncurses.h>
 
 using namespace std;
 using namespace std::chrono;
@@ -26,40 +29,41 @@ struct Topics
         {
             struct action
             {
-                static inline const string Name = "action";
-                static inline constexpr const unsigned char QOS = 1;
+                static inline const string Name = "controller/action";
+                static inline constexpr const unsigned char QOS = 0;
 
                 struct Payloads
                 {
-                    static inline const char* Walk = "walk";
-                    static inline const char* Run = "run";
-                    static inline const char* Stand = "stand";
+                    static inline const mqtt::message_ptr Walk = mqtt::make_message(Name, "walk", 4);
+                    static inline const mqtt::message_ptr Run = mqtt::make_message(Name, "run", 3);
+                    static inline const mqtt::message_ptr Stand = mqtt::make_message(Name, "stand", 5);
                 };
 
-                void cbPublishMessage(mqtt::async_client &mqttClient, const char* command = Payloads::Walk)
+                static void cbPublishMessage(mqtt::async_client &mqttClient, const mqtt::message_ptr payload = Payloads::Walk)
                 {
-                    auto pubmsg = mqtt::make_message(Name, command, 4);
-                    pubmsg->set_qos(QOS);
-                    mqttClient.publish(pubmsg)->wait_for(PUBLISH_TIMEOUT);
+                    payload->set_qos(QOS);
+                    mqttClient.publish(payload)->wait_for(PUBLISH_TIMEOUT);
                 }
             };
 
             struct stick
             {
-                static inline const string Name = "stick";
+                static inline const string Name = "controller/stick";
                 static inline constexpr const unsigned char QOS = 0;
-                void cbPublishMessage(mqtt::async_client &mqttClient, const float deplacementVertical = 0.0f, const float rotation = 0.0f, const float ignore = 0.0f, const float deplacementHorizontal = 0.0f)
+
+                static void cbPublishMessage(mqtt::async_client &mqttClient, const float deplacementVertical = 0.0f, const float rotation = 0.0f, const float ignore = 0.0f, const float deplacementHorizontal = 0.0f)
                 {
                     float stick_values[4] = {deplacementVertical, rotation, ignore, deplacementHorizontal};
-                    for (unsigned char index = 0; index < 4; index++) 
+                    for (static unsigned char index = 0; index < 4; index++) 
                     {
                         if (stick_values[index] > 1.0f)
                             stick_values[index] = 1.0f;
                         else if (stick_values[index] < -1.0f)
                             stick_values[index] = -1.0f;
                     }
-                        
-                    auto pubmsg = mqtt::make_message(Name, stick_values, 4);
+
+
+                    auto pubmsg = mqtt::make_message(Name, stick_values, 4*4);
                     pubmsg->set_qos(QOS);
                     mqttClient.publish(pubmsg)->wait_for(PUBLISH_TIMEOUT);
                 }
@@ -82,10 +86,8 @@ struct Topics
 # -1 = Arrière à fond (~1m)
 #  1 = Avant à fond (~1m) */
 
-
 int main(int argc, char *argv[])
 {
-
     const string serverURI = (argc > 1) ? string{argv[1]} : DFLT_SERVER_URI;
     const string clientID = (argc > 2) ? string{argv[2]} : CLIENT_ID;
 
@@ -99,9 +101,32 @@ int main(int argc, char *argv[])
         conntok->wait();
         cout << "Connected !" << endl;
 
-        static const string TOPIC_ACTION = "controller/action";
-        mqtt::message_ptr pubmsg = mqtt::make_message(TOPIC_ACTION, "walk", sizeof("walk"));
+        Topics::controller::Publishers::action::cbPublishMessage(client, Topics::controller::Publishers::action::Payloads::Walk);
 
+        initscr();
+        raw();
+        keypad(stdscr, TRUE);
+        noecho();
+
+        while (getch() != '#') {
+        
+            switch (getch()) 
+            {
+                case KEY_UP:
+                Topics::controller::Publishers::stick::cbPublishMessage(client, 0.0f, 0.0f, 0.0f, 0.2f);
+                break;
+                case KEY_DOWN:
+                Topics::controller::Publishers::stick::cbPublishMessage(client, 0.0f, 0.0f, 0.0f, -0.2f);
+                break;
+                case KEY_RIGHT:
+                Topics::controller::Publishers::stick::cbPublishMessage(client, 0.0f, 0.2f, 0.0f, 0.0f);
+                break;
+                case KEY_LEFT:
+                Topics::controller::Publishers::stick::cbPublishMessage(client, 0.0f, -0.2f, 0.0f, 0.0f);
+                break;
+            }
+        }
+        
 
         // Disconnect
         cout << "\nDisconnecting..." << endl;
