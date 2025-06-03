@@ -31,6 +31,241 @@ int main()
     aruco::ArucoDetector detector(dictionary, detectorParams);
 
     Mat frame, gray;
+
+
+    bool base = false;
+
+
+    //position réelles des markers dans le monde en mètres
+
+    map<int, Vec3d> markerWorldPositions = { // {x, y , z}
+        {0, Vec3d(0.0, 0.0, 0.0)},
+        {1, Vec3d(1.0, 0.0, 0.0)},
+        {2, Vec3d(0.0,1.0,0.0)},
+        // Ajoutez d'autres marqueurs selon leur placement
+    };
+
+    float markerLength = 0.1f;
+
+
+
+
+    //*********************************************************************************
+
+    // Initialisation de la carte
+    const int mapWidth = 700;
+    const int mapHeight = 700;
+    Mat mapImage(mapHeight, mapWidth, CV_8UC3, Scalar(255, 255, 255));
+    Mat mapImageCopy = mapImage.clone(); // Copie de l'image de fond
+
+
+    // Paramètres de la carte
+    const float scale = 100.0f; // 1 mètre = 100 pixels
+    const Point2f mapOrigin(mapWidth / 2.0f, mapHeight / 2.0f); // Origine au centre
+
+
+
+    // Dessiner les marqueurs sur la carte
+    for (const auto& marker : markerWorldPositions) {
+        Point2f pos = mapOrigin + Point2f(marker.second[0] * scale, -marker.second[1] * scale);
+        circle(mapImage, pos, 5, Scalar(0, 0, 255), -1);
+        putText(mapImage, "ID: " + to_string(marker.first), pos + Point2f(5, -5),
+                FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 0), 1);
+    }
+
+
+    //*********************************************************************************
+
+
+    while (true) {
+        cap >> frame;
+        if (frame.empty()) {
+            cerr << "Erreur : image vide capturée." << endl;
+            break;
+        }
+
+        cvtColor(frame, gray, COLOR_BGR2GRAY);
+
+
+
+
+
+        vector<int> markerIds;
+        vector<vector<Point2f>> markerCorners, rejectedCandidates;
+        detector.detectMarkers(gray, markerCorners, markerIds);
+
+        if (!markerIds.empty()) {
+            aruco::drawDetectedMarkers(frame, markerCorners, markerIds);
+
+            vector<Vec3d> cameraPositions;
+            for (size_t i = 0; i < markerIds.size(); ++i) {
+                int id = markerIds[i];
+                if (markerWorldPositions.find(id) == markerWorldPositions.end())
+                    continue;
+
+                // Définir les points 3D du marqueur dans son référentiel
+                vector<Point3f> objectPoints = {
+                    Point3f(-markerLength / 2.f,  markerLength / 2.f, 0),
+                    Point3f( markerLength / 2.f,  markerLength / 2.f, 0),
+                    Point3f( markerLength / 2.f, -markerLength / 2.f, 0),
+                    Point3f(-markerLength / 2.f, -markerLength / 2.f, 0)
+                };
+
+                // Estimer la pose du marqueur
+                Mat rvec, tvec;
+                bool success = solvePnP(objectPoints, markerCorners[i], cameraMatrix, distCoeffs, rvec, tvec);
+                if (!success)
+                    continue;
+
+                // Dessiner les axes du marqueur
+                drawFrameAxes(frame, cameraMatrix, distCoeffs, rvec, tvec, markerLength * 0.5f);
+
+                // Calculer la distance entre le marqueur et la caméra
+                double distance = norm(tvec) * 100.0; // en centimètres
+
+                // Calculer l'angle entre l'axe Z du marqueur et celui de la caméra
+                Mat rotationMatrix;
+                Rodrigues(rvec, rotationMatrix);
+                Vec3d z_marker(rotationMatrix.at<double>(0,2), rotationMatrix.at<double>(1,2), rotationMatrix.at<double>(2,2));
+                Vec3d z_camera(0, 0, 1);
+                double angle_rad = acos(z_marker.dot(z_camera) / (norm(z_marker) * norm(z_camera)));
+                double angle_deg = angle_rad * 180.0 / CV_PI;
+
+                // Calculer la position de la caméra dans le référentiel du marqueur
+                Mat cameraPosition = -rotationMatrix.t() * tvec;
+
+                // Position du marqueur dans le monde
+                Vec3d markerPosition = markerWorldPositions[id];
+
+                // Position de la caméra dans le monde
+                Vec3d cameraPositionWorld = markerPosition + Vec3d(cameraPosition);
+
+                cameraPositions.push_back(cameraPositionWorld);
+
+                // Afficher les informations sur l'image
+                stringstream ss;
+                ss << "ID: " << id
+                   << " Dist: " << fixed << setprecision(2) << distance << "cm"
+                   << " Angle Z: " << fixed << setprecision(2) << angle_deg << "deg"
+                   << " Pos: (" << fixed << setprecision(2) << cameraPositionWorld[0]
+                   << ", " << cameraPositionWorld[1] << ")";
+                putText(frame, ss.str(), Point(10, 30 + 30 * i), FONT_HERSHEY_SIMPLEX, 0.6, Scalar(255, 0, 0), 2);
+            }
+
+            // Calculer la position moyenne si plusieurs marqueurs sont détectés
+            if (!cameraPositions.empty()) {
+                Vec3d avgPosition(0, 0, 0);
+                for (const auto& pos : cameraPositions)
+                    avgPosition += pos;
+                avgPosition /= static_cast<double>(cameraPositions.size());
+
+                stringstream ss;
+                ss << "Position moyenne: (" << fixed << setprecision(2) << avgPosition[0]
+                   << ", " << avgPosition[1] << ")";
+                putText(frame, ss.str(), Point(10, 30 + 30 * markerIds.size()), FONT_HERSHEY_SIMPLEX, 0.6, Scalar(0, 255, 0), 2);
+
+
+
+                // Affichage de la position moyenne sur la carte
+                mapImageCopy = mapImage.clone();
+                Point2f avgCameraPosOnMap = mapOrigin + Point2f(avgPosition[0] * scale, -avgPosition[1] * scale);
+                circle(mapImageCopy, avgCameraPosOnMap, 5, Scalar(0, 255, 0), -1);
+                putText(mapImageCopy, "Camera (avg)", avgCameraPosOnMap + Point2f(5, -5),
+                        FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 0), 1);
+
+
+
+
+
+                imshow("Carte en temps réel", mapImageCopy);
+
+
+            }
+
+
+
+
+
+
+        }
+
+        imshow("Détection ArUco", frame);
+        if (waitKey(1) == 'q') break;
+    }
+
+    cap.release();
+    destroyAllWindows();
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <opencv2/objdetect/aruco_detector.hpp>
+
+using namespace std;
+using namespace cv;
+
+int main()
+{
+    // Charger les paramètres de calibration depuis un fichier YAML
+    Mat cameraMatrix, distCoeffs;
+    FileStorage fs("/Users/ulysse/Documents/unitree/camera_calibration.yml", FileStorage::READ);
+    if (!fs.isOpened()) {
+        cerr << "Erreur : impossible d'ouvrir le fichier de calibration." << endl;
+        return -1;
+    }
+    fs["camera_matrix"] >> cameraMatrix;
+    fs["distortion_coefficients"] >> distCoeffs;
+    fs.release();
+
+    // Ouvrir la caméra
+    VideoCapture cap(0);
+    if (!cap.isOpened()) {
+        cerr << "Erreur : impossible d'ouvrir la caméra." << endl;
+        return -1;
+    }
+
+    // Initialiser le détecteur ArUco
+    aruco::Dictionary dictionary = aruco::getPredefinedDictionary(aruco::DICT_6X6_100);
+    aruco::DetectorParameters detectorParams;
+    aruco::ArucoDetector detector(dictionary, detectorParams);
+
+    Mat frame, gray;
+
+
+    bool base = false;
+
+
     while (true) {
         cap >> frame;
         if (frame.empty()) {
@@ -45,14 +280,31 @@ int main()
 
         detector.detectMarkers(gray, markerCorners, markerIds);
 
+
+        static int x, y = 0;
+
         if (!markerIds.empty()) {
             aruco::drawDetectedMarkers(frame, markerCorners, markerIds);
 
             cout << "IDs : ";
             for(int i=0; i< markerIds.size(); i++) {
-                cout << markerIds[i] << ", ";
+                //cout << markerIds[i] << ", ";
+                if(markerIds[i] == 0 && markerIds[i] == 1) {
+                    cout << "robot actuellement à la position x: " << x << " y: " << y << endl;
+                    base = true;
+
+                    //affichage et vérification si on est bien à la base (x et y = 0)
+                    if(markerIds[i] == 2) { //si on détecte le tag N°2 le robot commence sa ronde
+                        cout << "depart du robot" << endl;
+                    }
+                }
             }
-            cout << endl;
+            //cout << endl; // remettre si on veut réafficher dans la console la liste des tags détectés
+
+
+
+
+
 
 
             for (size_t i = 0; i < markerIds.size(); ++i) {
@@ -144,7 +396,7 @@ int main()
                     cv::putText(frame, oss.str(), cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX,
                                 0.6, cv::Scalar(0, 255, 0), 2);
 
-                    */
+                    // remettre commentaire encadré
 
 
 
@@ -163,3 +415,4 @@ int main()
 
     return 0;
 }
+*/
