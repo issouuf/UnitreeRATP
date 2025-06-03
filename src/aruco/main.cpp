@@ -9,7 +9,7 @@ int main()
 {
     // Charger les paramètres de calibration depuis un fichier YAML
     Mat cameraMatrix, distCoeffs;
-    FileStorage fs("/Users/ulysse/Documents/unitree/camera_calibration.yml", FileStorage::READ);
+    FileStorage fs("/home/pi/UnitreeRATP/src/aruco/calibration/camera_calibration.yml", FileStorage::READ);
     if (!fs.isOpened()) {
         cerr << "Erreur : impossible d'ouvrir le fichier de calibration." << endl;
         return -1;
