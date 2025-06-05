@@ -5,6 +5,9 @@ project(mqttLidar LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Set compiler flags
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall")
+
 find_package(PahoMqttCpp REQUIRED)
 find_package(Curses REQUIRED)
 

@@ -6,12 +6,15 @@ UnitreeGo1::UnitreeGo1(std::string ipAdress, UnitreeProtocols protocol, u_int16_
         Port = port;
         Model = "Unitree Go 1";
 
-        client = new mqtt::async_client(std::format("mqtt:://{0}:{1}", IPAdress, Port), CLIENT_ID);
+        client = new mqtt::async_client((std::ostringstream() << "mqtt://" << IPAdress << ":" << Port).str(), CLIENT_ID);
 }
 
 UnitreeGo1::~UnitreeGo1() {
     IUnitreeMovement::~IUnitreeMovement();
     IMovement::~IMovement();
+
+    if (headColorThread.joinable()) headColorThread.join();
+
     if (client != nullptr) {
         if (IsConnected) {
             if (IsMoving || !IsStopped) {
@@ -32,7 +35,7 @@ bool UnitreeGo1::Connect() {
         mqtt::token_ptr waitToken = client->connect(CONNECTION_OPTIONS);
         waitToken->wait();
     } catch (const mqtt::exception& e) {
-        std::cerr << "Connection failed: " << e.what() << std::endl;
+        std::cout << "Connection failed: " << e.what() << std::endl;
         return false;
     }
     IsDisconnectRequested = false;
@@ -46,9 +49,6 @@ void UnitreeGo1::Start() {
     IsAllowedToMove = true;
 
     headColorThread = std::thread(&UnitreeGo1::changeHeadColorThread, this, 1000);
-    if (headColorThread.joinable()) {
-        headColorThread.join();
-    }
 }
 
 

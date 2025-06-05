@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     {
         robot.Connect();
         robot.Start();
-        robot.MoveXYZ(500, 0, 30);
+        robot.MoveXYZ(0, 0, 180);
     }
     catch (const mqtt::exception &exc)
     {

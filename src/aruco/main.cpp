@@ -1,12 +1,54 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <opencv2/objdetect/aruco_detector.hpp>
+#include "mqtt/async_client.h"
 
 using namespace std;
 using namespace cv;
 
+
+const string server_adress{"mqtt://localhost:1883"};
+const string client_id{"listener"};
+const string topic{"neuil"};
+
+
 int main()
 {
+    //connection MQTT
+    mqtt::async_client client(server_adress, client_id);
+    mqtt::connect_options connOpts = mqtt::connect_options_builder()
+                                     .mqtt_version(MQTTVERSION_DEFAULT)
+                                     .automatic_reconnect()
+                                     .clean_session()
+                                     .finalize();
+
+
+
+    try {
+        // Connexion au broker
+        cout << "Connexion au broker MQTT..." << endl;
+        mqtt::token_ptr conntok = client.connect(connOpts);
+        conntok->wait();
+        cout << "Connecté !" << endl;
+
+        // Créer un message à publier
+        string payload = "programme Aruco"; 
+        mqtt::message_ptr pubmsg = mqtt::make_message(topic, payload);
+        pubmsg->set_qos(1);
+
+        // Publier le message
+        client.publish(pubmsg)->wait_for(std::chrono::seconds(10));
+        cout << "Message publié sur " << topic << ": " << payload << endl;
+
+        // Déconnexion propre
+        client.disconnect()->wait();
+        cout << "Déconnecté." << endl;
+    } catch (const mqtt::exception& exc) {
+        cerr << "Erreur MQTT : " << exc.what() << endl;
+        return 1;
+    }
+
+
     // Charger les paramètres de calibration depuis un fichier YAML
     Mat cameraMatrix, distCoeffs;
     FileStorage fs("/home/pi/UnitreeRATP/src/aruco/calibration/camera_calibration.yml", FileStorage::READ);
@@ -190,6 +232,9 @@ int main()
         }
 
         imshow("Détection ArUco", frame);
+        //namedWindow("camera", WINDOW_NORMAL);
+        //resizeWindow("camera",200,200);
+        //imshow("camera", frame);
         if (waitKey(1) == 'q') break;
     }
 

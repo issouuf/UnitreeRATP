@@ -1,5 +1,5 @@
-#include <format>
 #include <thread>
+#include <sstream>
 
 #include "../../abstract/IUnitreeMovement.hpp"
 #include "utilities/MQTT/Topics.hpp"
@@ -39,7 +39,6 @@ class UnitreeGo1 : public IUnitreeMovement {
     std::string CLIENT_ID {"RATP_UnitreeGo1"};
 
     mqtt::connect_options CONNECTION_OPTIONS = mqtt::connect_options_builder()
-        .mqtt_version(MQTTVERSION_DEFAULT)
         .automatic_reconnect()
         .keep_alive_interval(std::chrono::seconds(20))
         .clean_session()
