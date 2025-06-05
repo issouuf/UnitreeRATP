@@ -77,16 +77,13 @@ void UnitreeGo1::MoveXYZ(float xMillimeters, float yMillimeters, float angle) {
     Topics::controller::Publishers::stick::cbPublishMessage(*client, scaleMillimetersToNormals(yMillimeters), scaleAngleToNormals(angle), 0.0f, scaleMillimetersToNormals(yMillimeters));
 }
 void UnitreeGo1::MoveX(float millimeters) {
-    // Implement X-axis movement logic for Unitree Go 1
-    IsMoving = true; // Simulate movement
+    Topics::controller::Publishers::stick::cbPublishMessage(*client, scaleMillimetersToNormals(millimeters), 0.0, 0.0f, 0.0f);
 }
 void UnitreeGo1::MoveY(float millimeters) {
-    // Implement Y-axis movement logic for Unitree Go 1
-    IsMoving = true; // Simulate movement
+    Topics::controller::Publishers::stick::cbPublishMessage(*client, 0.0f, 0.0f, 0.0f, scaleMillimetersToNormals(millimeters));
 }
 void UnitreeGo1::MoveZ(float millimeters) {
-    // Implement Z-axis movement logic for Unitree Go 1
-    IsMoving = true; // Simulate movement
+        Topics::controller::Publishers::stick::cbPublishMessage(*client, 0.0f, scaleAngleToNormals(millimeters), 0.0f, 0.0f);
 }
 void UnitreeGo1::MoveLeftBy(float millimeters) {
     // Implement left movement logic for Unitree Go 1
