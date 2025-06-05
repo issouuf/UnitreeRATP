@@ -30,7 +30,7 @@ struct Topics
             struct stick
             {
                 static inline const std::string Name = "controller/stick";
-                static inline constexpr const unsigned char QOS = 0;
+                static inline constexpr const unsigned char QOS = 1;
 
                 static void cbPublishMessage(mqtt::async_client &mqttClient, const float deplacementVertical = 0.0f, const float rotation = 0.0f, const float ignore = 0.0f, const float deplacementHorizontal = 0.0f)
                 {

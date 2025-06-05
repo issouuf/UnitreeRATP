@@ -9,7 +9,7 @@ using namespace cv;
 
 const string server_adress{"mqtt://localhost:1883"};
 const string client_id{"listener"};
-const string topic{"neuil"};
+const string topic{"ordre/commande"};
 
 
 int main()
@@ -32,6 +32,7 @@ int main()
         cout << "Connecté !" << endl;
 
         // Créer un message à publier
+        /*
         string payload = "programme Aruco"; 
         mqtt::message_ptr pubmsg = mqtt::make_message(topic, payload);
         pubmsg->set_qos(1);
@@ -41,8 +42,11 @@ int main()
         cout << "Message publié sur " << topic << ": " << payload << endl;
 
         // Déconnexion propre
-        client.disconnect()->wait();
-        cout << "Déconnecté." << endl;
+        //client.disconnect()->wait();
+        //cout << "Déconnecté." << endl;
+
+
+        */
     } catch (const mqtt::exception& exc) {
         cerr << "Erreur MQTT : " << exc.what() << endl;
         return 1;
@@ -90,6 +94,15 @@ int main()
     float markerLength = 0.1f;
 
 
+        map<int, string> tag_ordre = {
+        {10, "avancer $1000"},
+        {11,"droite $90"},
+        {12,"gauche $90"},
+        {13,"reculer $1000"},
+        };
+
+
+
 
 
     //*********************************************************************************
@@ -117,7 +130,7 @@ int main()
 
 
     //*********************************************************************************
-
+    bool ok = false; 
 
     while (true) {
         cap >> frame;
@@ -142,6 +155,28 @@ int main()
             vector<Vec3d> cameraPositions;
             for (size_t i = 0; i < markerIds.size(); ++i) {
                 int id = markerIds[i];
+
+                //---------------détection tag ordre et envoie des commandes avec mqtt---------------
+
+                auto ordre = tag_ordre.find(id);
+                if(ordre != tag_ordre.end() && ok == false) {
+                    cout << "tag ordre trouve: "<< id << endl;
+                    cout << "commande envoyee: " << ordre->second << endl;
+                    client.publish(topic, ordre->second);
+                    ok = true; 
+                    
+                    // Créer un message à publier
+                    //string payload = ; 
+                    //mqtt::message_ptr pubmsg = mqtt::make_message(topic, payload);
+                    //pubmsg->set_qos(1);
+
+                    // Publier le message
+                    //client.publish(pubmsg)->wait_for(std::chrono::seconds(10));
+                    //cout << "Message publié sur " << topic << ": " << payload << endl;
+
+                }
+
+
                 if (markerWorldPositions.find(id) == markerWorldPositions.end())
                     continue;
 
