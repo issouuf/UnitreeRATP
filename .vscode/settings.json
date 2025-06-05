@@ -1,5 +1,5 @@
 {
-    "cmake.sourceDirectory": "/home/pi/UnitreeRATP/src/mqtt",
+    "cmake.sourceDirectory": "/home/nohan/UnitreeRATP/src/movement",
     "files.associations": {
         "iostream": "cpp",
         "cctype": "cpp",
@@ -65,6 +65,13 @@
         "cinttypes": "cpp",
         "typeindex": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "any": "cpp",
+        "charconv": "cpp",
+        "format": "cpp",
+        "queue": "cpp",
+        "ranges": "cpp",
+        "span": "cpp",
+        "text_encoding": "cpp"
     }
 }
