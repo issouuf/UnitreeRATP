@@ -96,7 +96,7 @@ void ctrlc(int)
 
 const string server_adress{"mqtt://localhost:1883"};
 const string client_id{"listener"};
-const string topic{"neuil"};
+const string topic{"lidar"};
 
 
 
@@ -316,17 +316,18 @@ int main(int argc, const char * argv[]) {
                     (nodes[pos].angle_z_q14 * 90.f) / 16384.f,
                     nodes[pos].dist_mm_q2/4.0f,
                     nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT);
-                    if ((nodes[pos].dist_mm_q2/4.0f)<500)
-                    {
-        // Créer un message à publier
-        string payload = "programme Aruco"; 
-        mqtt::message_ptr pubmsg = mqtt::make_message(topic, payload);
-        pubmsg->set_qos(1);
+                if ((nodes[pos].dist_mm_q2 / 4.0f) < 500) {
+                    // Convertir la distance en string
+                    float distance = nodes[pos].dist_mm_q2 / 4.0f;
+                    string payload = to_string(distance); 
 
-        // Publier le message
-        client.publish(pubmsg)->wait_for(std::chrono::seconds(10));
-        cout << "Message publié sur " << topic << ": " << payload << endl;
-                    }
+                    // Créer et publier le message
+                    mqtt::message_ptr pubmsg = mqtt::make_message(topic, payload);
+                    pubmsg->set_qos(1);
+
+                    client.publish(pubmsg);
+                    cout << "Distance publiée sur " << topic << ": " << payload << " mm" << endl;
+                }
                     
             }   }
         }
