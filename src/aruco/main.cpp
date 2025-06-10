@@ -202,7 +202,7 @@ int main()
                 double distance = norm(tvec) * 100.0; // en centimètres
 
 
-                if(distance <= 30) {
+                if(distance <= 30.0) {
                     client.publish(topic, "STOP");
                 }
 
