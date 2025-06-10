@@ -95,10 +95,10 @@ int main()
 
 
         map<int, string> tag_ordre = {
-        {10, "avancer $1000"},
+        {10, "avancer $100"},
         {11,"droite $90"},
         {12,"gauche $90"},
-        {13,"reculer $1000"},
+        {13,"reculer $100"},
         };
 
 
