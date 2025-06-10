@@ -202,7 +202,9 @@ int main()
                 double distance = norm(tvec) * 100.0; // en centimètres
 
 
-                client.publish(topic, to_string(distance)+ "$");
+                if(distance <= 30) {
+                    client.publish(topic, "STOP");
+                }
 
                 // Calculer l'angle entre l'axe Z du marqueur et celui de la caméra
                 Mat rotationMatrix;
