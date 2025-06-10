@@ -165,6 +165,7 @@ int main()
                     client.publish(topic, ordre->second);
                     ok = true; 
                     
+                    
                     // Créer un message à publier
                     //string payload = ; 
                     //mqtt::message_ptr pubmsg = mqtt::make_message(topic, payload);
@@ -199,6 +200,9 @@ int main()
 
                 // Calculer la distance entre le marqueur et la caméra
                 double distance = norm(tvec) * 100.0; // en centimètres
+
+
+                client.publish(topic, to_string(distance)+ "$");
 
                 // Calculer l'angle entre l'axe Z du marqueur et celui de la caméra
                 Mat rotationMatrix;
