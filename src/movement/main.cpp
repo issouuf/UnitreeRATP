@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 
     if (!ipcClientConnectResponse.is_session_present())
     {
-        std::cout << "[OK] Subscribing to the ordre/commande topic" << std::endl;
+        std::cout << "[OK] Subscribing to the lidar/commande topic" << std::endl;
         lidarIPCClient.subscribe("lidar/commande", 1)->wait();
     }
     else
