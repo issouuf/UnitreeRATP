@@ -33,6 +33,9 @@ class UnitreeGo1 : public IUnitreeMovement {
     void SetPort(u_int16_t port) override;
 
     private:
+    float xPosition = 0.0f;
+    float yPosition = 0.0f;
+    float zPosition = 0.0f;
     static constexpr const char* FACTORY_UNITREE_GO_1_DEFAULT_IP_ADDRESS = "192.168.12.1";
     static constexpr u_int16_t FACTORY_UNITREE_GO_1_DEFAULT_MQTT_PORT = 1883;
 
@@ -50,5 +53,6 @@ class UnitreeGo1 : public IUnitreeMovement {
     float scaleAngleToNormals(float angle);
 
     void changeHeadColorThread(int sleepTimeMillis = 1000);
+    void moveUntilMarkerThread();
     std::thread headColorThread;
 };

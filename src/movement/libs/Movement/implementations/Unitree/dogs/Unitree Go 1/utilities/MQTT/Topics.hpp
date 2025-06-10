@@ -23,7 +23,7 @@ struct Topics
                 static void cbPublishMessage(mqtt::async_client &mqttClient, const mqtt::message_ptr payload = Payloads::Walk)
                 {
                     payload->set_qos(QOS);
-                    mqttClient.publish(payload)->wait_for(DEFAULT_PUBLISH_TIMEOUT);
+                    mqttClient.publish(payload);
                 }
             };
 
@@ -46,7 +46,7 @@ struct Topics
 
                     auto pubmsg = mqtt::make_message(Name, stick_values, 4*4);
                     pubmsg->set_qos(QOS);
-                    mqttClient.publish(pubmsg)->wait_for(DEFAULT_PUBLISH_TIMEOUT);
+                    mqttClient.publish(pubmsg);
                 }
             };
         };
@@ -67,7 +67,7 @@ struct Topics
                 {
                     auto pubmsg = mqtt::make_message(Name, color, 3);
                     pubmsg->set_qos(QOS);
-                    mqttClient.publish(pubmsg)->wait_for(DEFAULT_PUBLISH_TIMEOUT);
+                    mqttClient.publish(pubmsg);
                 }
             };
         };

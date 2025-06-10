@@ -9,6 +9,7 @@ class IMovement {
     bool IsMoving = false;
     bool IsStopped = true;
     bool IsDisconnectRequested = false;
+    bool IsMarkerReached = false;
 
     std::string Model;
     std::string Manufacturer;
