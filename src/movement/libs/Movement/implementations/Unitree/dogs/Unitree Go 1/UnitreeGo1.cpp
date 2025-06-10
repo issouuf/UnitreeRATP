@@ -108,17 +108,17 @@ void UnitreeGo1::MoveXYZ(float xMillimeters, float yMillimeters, float angle)
 void UnitreeGo1::MoveX(float millimeters)
 {
     xPosition = scaleMillimetersToNormals(millimeters);
-    Topics::controller::Publishers::stick::cbPublishMessage(*client, yPosition, zPosition, 0.0f, xPosition);
+    Topics::controller::Publishers::stick::cbPublishMessage(*client, xPosition, zPosition, 0.0f, yPosition);
 }
 void UnitreeGo1::MoveY(float millimeters)
 {
     yPosition = scaleMillimetersToNormals(millimeters);
-    Topics::controller::Publishers::stick::cbPublishMessage(*client, yPosition, zPosition, 0.0f, xPosition);
+    Topics::controller::Publishers::stick::cbPublishMessage(*client, xPosition, zPosition, 0.0f, yPosition);
 }
 void UnitreeGo1::MoveZ(float millimeters)
 {
     zPosition = scaleAngleToNormals(millimeters);
-    Topics::controller::Publishers::stick::cbPublishMessage(*client, yPosition, zPosition, 0.0f, xPosition);
+    Topics::controller::Publishers::stick::cbPublishMessage(*client, xPosition, zPosition, 0.0f, yPosition);
 }
 void UnitreeGo1::MoveLeftBy(float millimeters)
 {
@@ -181,12 +181,18 @@ void UnitreeGo1::changeHeadColorThread(int sleepTimeMillis)
 {
     while (IsConnected && !IsDisconnectRequested)
     {
-        if (client != nullptr && client->is_connected())
+        try
         {
-            Topics::face_light::Publishers::color::cbPublishMessage(*client, Topics::face_light::Publishers::color::BlueColor);
-            std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMillis));
-            Topics::face_light::Publishers::color::cbPublishMessage(*client, Topics::face_light::Publishers::color::RedColor);
-            std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMillis));
+            if (client != nullptr && client->is_connected())
+            {
+                Topics::face_light::Publishers::color::cbPublishMessage(*client, Topics::face_light::Publishers::color::BlueColor);
+                std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMillis));
+                Topics::face_light::Publishers::color::cbPublishMessage(*client, Topics::face_light::Publishers::color::RedColor);
+                std::this_thread::sleep_for(std::chrono::milliseconds(sleepTimeMillis));
+            }
+        }
+        catch (...)
+        {
         }
     }
 }
@@ -196,13 +202,13 @@ void UnitreeGo1::moveUntilMarkerThread()
     while (!IsMarkerReached)
     {
         IsMoving = true;
-        Topics::controller::Publishers::stick::cbPublishMessage(*client, yPosition, zPosition, 0.0f, xPosition);
+        Topics::controller::Publishers::stick::cbPublishMessage(*client, xPosition, zPosition, 0.0f, yPosition);
     }
 
     yPosition = 0.0f;
     xPosition = 0.0f;
     zPosition = 0.0f;
-    Topics::controller::Publishers::stick::cbPublishMessage(*client, yPosition, zPosition, 0.0f, xPosition);
+    Topics::controller::Publishers::stick::cbPublishMessage(*client, xPosition, zPosition, 0.0f, yPosition);
     IsMoving = false;
 }
 
