@@ -96,7 +96,7 @@ void ctrlc(int)
 
 const string server_adress{"mqtt://localhost:1883"};
 const string client_id{"listener"};
-const string topic{"lidar"};
+const string topic{"lidar/commande"};
 
 
 
@@ -300,41 +300,41 @@ int main(int argc, const char * argv[]) {
     // fetech result and print it out...
     while (1) {
         sl_lidar_response_measurement_node_hq_t nodes[8192];
-        size_t   count = _countof(nodes);
+        size_t count = _countof(nodes);
 
         op_result = drv->grabScanDataHq(nodes, count);
 
         if (SL_IS_OK(op_result)) {
             drv->ascendScanData(nodes, count);
-            for (int pos = 0; pos < (int)count ; ++pos) {
-                
-                float angle = (nodes[pos].angle_z_q14 * 90.f) /16384.f;
-                if ((angle>=0 && angle <= 120)|| (angle >= 240 && angle <= 360)){
-                    
-                printf("%s theta: %03.2f Dist: %08.2f Q: %d \n", 
-                    (nodes[pos].flag & SL_LIDAR_RESP_HQ_FLAG_SYNCBIT) ?"S ":"  ", 
-                    (nodes[pos].angle_z_q14 * 90.f) / 16384.f,
-                    nodes[pos].dist_mm_q2/4.0f,
-                    nodes[pos].quality >> SL_LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT);
-                if ((nodes[pos].dist_mm_q2 / 4.0f) < 500) {
-                    // Convertir la distance en string
-                    float distance = nodes[pos].dist_mm_q2 / 4.0f;
-                    string payload = to_string(distance); 
 
-                    // Créer et publier le message
-                    mqtt::message_ptr pubmsg = mqtt::make_message(topic, payload);
-                    pubmsg->set_qos(1);
+            float min_distance = std::numeric_limits<float>::max();
+            float min_angle = 0.0f;
 
-                    client.publish(pubmsg);
-                    cout << "Distance publiée sur " << topic << ": " << payload << " mm" << endl;
+            for (int pos = 0; pos < (int)count; ++pos) {
+                float angle = (nodes[pos].angle_z_q14 * 90.f) / 16384.f;
+                float distance = nodes[pos].dist_mm_q2 / 4.0f;
+
+                if (((angle >= 0 && angle <= 120) || (angle >= 240 && angle <= 360)) && distance > 0 && distance < min_distance) {
+                    min_distance = distance;
+                    min_angle = angle;
                 }
-                    
-            }   }
+            }
+
+            if (min_distance < std::numeric_limits<float>::max() && min_distance <= 300) {
+                string payload = "distance $" + to_string(min_distance) + " angle $" + to_string(min_angle);
+
+                mqtt::message_ptr pubmsg = mqtt::make_message(topic, payload);
+                pubmsg->set_qos(1);
+
+                client.publish(pubmsg);
+                cout << "Distance minimale publiée sur " << topic << ": " << payload << endl;
+            }
         }
 
-        if (ctrl_c_pressed){ 
+        if (ctrl_c_pressed) {
             break;
         }
+        sleep(1);
     }
 
     drv->stop();
