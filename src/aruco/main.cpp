@@ -82,7 +82,7 @@ int main()
     bool base = false;
 
 
-/ Définir une structure pour la position et la commande associée
+// Définir une structure pour la position et la commande associée
 struct MarkerInfo {
     Vec3d position;
     std::string mqtt_command;
