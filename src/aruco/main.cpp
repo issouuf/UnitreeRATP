@@ -98,7 +98,7 @@ int main()
         {10, "avancer $100"},
         {11,"droite $90"},
         {12,"gauche $90"},
-        {13,"reculer $100"},
+        {13,"reculer $100 "},
         };
 
 
