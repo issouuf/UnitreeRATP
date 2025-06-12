@@ -65,7 +65,7 @@ int main()
     fs.release();
 
     // Ouvrir la caméra
-    VideoCapture cap(0);
+    VideoCapture cap(0, cv::CAP_V4L2);
     if (!cap.isOpened()) {
         cerr << "Erreur : impossible d'ouvrir la caméra." << endl;
         return -1;

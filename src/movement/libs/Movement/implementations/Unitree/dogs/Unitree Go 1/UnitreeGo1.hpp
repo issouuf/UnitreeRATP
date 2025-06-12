@@ -55,4 +55,5 @@ class UnitreeGo1 : public IUnitreeMovement {
     void changeHeadColorThread(int sleepTimeMillis = 1000);
     void moveUntilMarkerThread();
     std::thread headColorThread;
+    std::thread moveThread;
 };

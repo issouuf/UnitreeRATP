@@ -58,8 +58,7 @@ int main(int argc, char *argv[])
             lidarIPCClient.set_message_callback([&robot](mqtt::const_message_ptr msg)
                                                 { handleLidarMovementCB(msg, robot); });
         }
-        while (true)
-            ;
+        while (true);
     }
     catch (const mqtt::exception &exc)
     {

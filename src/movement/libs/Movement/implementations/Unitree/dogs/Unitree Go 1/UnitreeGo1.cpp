@@ -103,7 +103,12 @@ void UnitreeGo1::MoveXYZ(float xMillimeters, float yMillimeters, float angle)
     yPosition = scaleMillimetersToNormals(yMillimeters);
     zPosition = scaleAngleToNormals(angle);
 
-    std::thread(std::bind(&UnitreeGo1::moveUntilMarkerThread, this)).detach();
+
+    if (!moveThread.joinable())
+    {
+        moveThread = std::thread(&UnitreeGo1::moveUntilMarkerThread, this);
+        moveThread.detach();
+    }
 }
 void UnitreeGo1::MoveX(float millimeters)
 {

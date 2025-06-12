@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(mqttLidar LANGUAGES CXX)
+project(droneMovement LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,18 +17,18 @@ file(GLOB_RECURSE SOURCES
     "libs/Movement/implementations/Unitree/abstract/*.cpp"
 )
 
-add_executable(mqttLidar ${SOURCES} main.cpp)
+add_executable(droneMovement ${SOURCES} main.cpp)
 
 
 # Lier les bibliothèques
-target_link_libraries(mqttLidar
+target_link_libraries(droneMovement
     ${CURSES_LIBRARIES}
     PahoMqttCpp::paho-mqttpp3
 )
 
 
 include(GNUInstallDirs)
-install(TARGETS mqttLidar
+install(TARGETS droneMovement
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
