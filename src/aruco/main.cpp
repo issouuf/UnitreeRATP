@@ -204,7 +204,7 @@ int main()
 
                 if(distance <= 30.0 && id == 0) {
                     client.publish(topic, "STOP");
-
+                }
 
                 // Calculer l'angle entre l'axe Z du marqueur et celui de la caméra
                 Mat rotationMatrix;
