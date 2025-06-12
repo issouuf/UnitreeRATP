@@ -163,7 +163,7 @@ int main()
                     cout << "tag ordre trouve: "<< id << endl;
                     cout << "commande envoyee: " << ordre->second << endl;
                     client.publish(topic, ordre->second);
-                    // ok = true; 
+                    ok = true; 
                     
                     
                     // Créer un message à publier
@@ -204,10 +204,7 @@ int main()
 
                 if(distance <= 30.0 && id == 0) {
                     client.publish(topic, "STOP");
-                    ok = true;
-                }else{
-                    ok = false;
-                }
+
 
                 // Calculer l'angle entre l'axe Z du marqueur et celui de la caméra
                 Mat rotationMatrix;
