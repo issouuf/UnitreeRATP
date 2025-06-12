@@ -82,25 +82,21 @@ int main()
     bool base = false;
 
 
-    //position réelles des markers dans le monde en mètres
+/ Définir une structure pour la position et la commande associée
+struct MarkerInfo {
+    Vec3d position;
+    std::string mqtt_command;
+};
 
-    map<int, Vec3d> markerWorldPositions = { // {x, y , z}
-        {0, Vec3d(0.0, 0.0, 0.0)},
-        {1, Vec3d(1.0, 0.0, 0.0)},
-        {2, Vec3d(0.0,1.0,0.0)},
-        // Ajoutez d'autres marqueurs selon leur placement
-    };
+//position réelles des markers dans le monde en mètres + commande mqtt à envoyer
+map<int, MarkerInfo> markerWorldPositions = {
+    {0, {Vec3d(0.0, 0.0, 0.0), "STOP"}},
+    {1, {Vec3d(1.0, 0.0, 0.0), "avancer $100"}},
+    {2, {Vec3d(0.0, 1.0, 0.0), "gauche $90"}},
+    // Ajoutez d'autres marqueurs selon leur placement et commande
+};
 
     float markerLength = 0.1f;
-
-
-        map<int, string> tag_ordre = {
-        {10, "avancer $100"},
-        {11,"droite $90"},
-        {12,"gauche $90"},
-        {13,"reculer $100 "},
-        };
-
 
 
 
@@ -158,24 +154,13 @@ int main()
 
                 //---------------détection tag ordre et envoie des commandes avec mqtt---------------
 
-                auto ordre = tag_ordre.find(id);
-                if(ordre != tag_ordre.end() && ok == false) {
-                    cout << "tag ordre trouve: "<< id << endl;
-                    cout << "commande envoyee: " << ordre->second << endl;
-                    client.publish(topic, ordre->second);
-                    ok = true; 
-                    
-                    
-                    // Créer un message à publier
-                    //string payload = ; 
-                    //mqtt::message_ptr pubmsg = mqtt::make_message(topic, payload);
-                    //pubmsg->set_qos(1);
-
-                    // Publier le message
-                    //client.publish(pubmsg)->wait_for(std::chrono::seconds(10));
-                    //cout << "Message publié sur " << topic << ": " << payload << endl;
-
-                }
+            auto markerIt = markerWorldPositions.find(id);
+            if(markerIt != markerWorldPositions.end() && !markerIt->second.mqtt_command.empty() && ok == false) {
+                cout << "tag ordre trouve: "<< id << endl;
+                cout << "commande envoyee: " << markerIt->second.mqtt_command << endl;
+                client.publish(topic, markerIt->second.mqtt_command);
+                ok = true; 
+            }
 
 
                 if (markerWorldPositions.find(id) == markerWorldPositions.end())
@@ -204,6 +189,7 @@ int main()
 
                 if(distance <= 30.0 && id == 0) {
                     client.publish(topic, "STOP");
+                    cout << "Commande STOP envoyée pour le marqueur ID: " << id << endl;
                 }
 
                 // Calculer l'angle entre l'axe Z du marqueur et celui de la caméra
@@ -256,19 +242,10 @@ int main()
                 putText(mapImageCopy, "Camera (avg)", avgCameraPosOnMap + Point2f(5, -5),
                         FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 0), 1);
 
-
-
-
-
                 imshow("Carte en temps réel", mapImageCopy);
 
 
             }
-
-
-
-
-
 
         }
 
