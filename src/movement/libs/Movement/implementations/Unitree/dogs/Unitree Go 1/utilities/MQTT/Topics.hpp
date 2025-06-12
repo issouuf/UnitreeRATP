@@ -38,7 +38,7 @@ struct Topics
                 static inline const std::string Name = "controller/stick";
                 static inline constexpr const unsigned char QOS = 1;
 
-                static void cbPublishMessage(mqtt::async_client &mqttClient, const float deplacementVertical = 0.0f, const float rotation = 0.0f, const float ignore = 0.0f, const float deplacementHorizontal = 0.0f)
+                static mqtt::delivery_token_ptr cbPublishMessage(mqtt::async_client &mqttClient, const float deplacementVertical = 0.0f, const float rotation = 0.0f, const float ignore = 0.0f, const float deplacementHorizontal = 0.0f)
                 {
                     float stick_values[4] = {deplacementVertical, rotation, ignore, deplacementHorizontal};
                     for (static unsigned char index = 0; index < 4; index++)
@@ -53,10 +53,11 @@ struct Topics
                     {
                         auto pubmsg = mqtt::make_message(Name, stick_values, 4 * 4);
                         pubmsg->set_qos(QOS);
-                        mqttClient.publish(pubmsg);
+                        return mqttClient.publish(pubmsg);
                     }
                     catch (...)
                     {
+                        return nullptr;
                     }
                 }
             };

@@ -204,10 +204,24 @@ void UnitreeGo1::changeHeadColorThread(int sleepTimeMillis)
 
 void UnitreeGo1::moveUntilMarkerThread()
 {
-    while (!IsMarkerReached)
+    while (!IsMarkerReached && IsAllowedToMove && IsConnected && !IsDisconnectRequested)
     {
         IsMoving = true;
-        Topics::controller::Publishers::stick::cbPublishMessage(*client, xPosition, zPosition, 0.0f, yPosition);
+        
+        std::cout << "Moving to position: X=" << xPosition << ", Y=" << yPosition << ", Z=" << zPosition << std::endl;
+        mqtt::delivery_token_ptr rToken = Topics::controller::Publishers::stick::cbPublishMessage(*client, xPosition, zPosition, 0.0f, yPosition);
+        if (rToken != nullptr)
+        {
+            rToken->wait();
+            if (rToken->get_return_code() == mqtt::SUCCESS)
+            {
+                std::cout << "Movement command sent successfully." << std::endl;
+            }
+            else
+            {
+                std::cerr << "Failed to send movement command: " << rToken->get_return_code() << std::endl;
+            }
+        }
     }
 
     yPosition = 0.0f;

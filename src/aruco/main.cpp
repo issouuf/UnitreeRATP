@@ -118,7 +118,7 @@ map<int, MarkerInfo> markerWorldPositions = {
 
     // Dessiner les marqueurs sur la carte
     for (const auto& marker : markerWorldPositions) {
-        Point2f pos = mapOrigin + Point2f(marker.second[0] * scale, -marker.second[1] * scale);
+        Point2f pos = mapOrigin + Point2f(marker.second.position[0] * scale, -marker.second.position[1] * scale);
         circle(mapImage, pos, 5, Scalar(0, 0, 255), -1);
         putText(mapImage, "ID: " + to_string(marker.first), pos + Point2f(5, -5),
                 FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 0), 1);
@@ -204,7 +204,7 @@ map<int, MarkerInfo> markerWorldPositions = {
                 Mat cameraPosition = -rotationMatrix.t() * tvec;
 
                 // Position du marqueur dans le monde
-                Vec3d markerPosition = markerWorldPositions[id];
+                Vec3d markerPosition = markerWorldPositions[id].position;
 
                 // Position de la caméra dans le monde
                 Vec3d cameraPositionWorld = markerPosition + Vec3d(cameraPosition);
