@@ -83,15 +83,18 @@ int main()
     map<int, MarkerInfo> markerDatabase = {
         // ID, {Position(x,y,z)}, Type, Commande de tâche
         {0, {Vec3d(0.0, 0.0, 0.0), TASK_STATION, "STOP"}}, // Base de départ / Arrêt d'urgence
-        {10, {Vec3d(2.0, 0.0, 0.0), WAYPOINT, ""}},          // Waypoint 1
-        {11, {Vec3d(2.0, 1.5, 0.0), WAYPOINT, ""}},          // Waypoint 2
-        {12, {Vec3d(0.0, 1.5, 0.0), TASK_STATION, "action_speciale_1"}}, // Station de tâche
-        {20, {Vec3d(1.0, 0.75, 0.0), LOCALIZATION_ONLY, ""}} // Marqueur juste pour se repérer
+        {10, {Vec3d(0.50, 4.0, 0.0), WAYPOINT, ""}},          // Waypoint 1
+        //{11, {Vec3d(2.0, 1.5, 0.0), WAYPOINT, ""}},          // Waypoint 2
+        //{12, {Vec3d(0.0, 1.5, 0.0), TASK_STATION, "action_speciale_1"}}, // Station de tâche
+        {20, {Vec3d(-2.0, 1.0, 0.0), LOCALIZATION_ONLY, ""}},
+        {21, {Vec3d(2.0, 1.0, 0.0), LOCALIZATION_ONLY, ""}},
+        {22, {Vec3d(-2.0, 3.0, 0.0), LOCALIZATION_ONLY, ""}},
+        {23, {Vec3d(2.0, 3.0, 0.0), LOCALIZATION_ONLY, ""}} // Marqueur juste pour se repérer
     };
 
     // NOUVEAU: Définir le plan de mission du robot
     // C'est la séquence d'IDs de WAYPOINT ou TASK_STATION que le robot doit suivre.
-    vector<int> missionPath = {10, 11, 12, 0}; // Va au wp 10, puis 11, puis 12, puis retourne à la base 0.
+    vector<int> missionPath = {10,0}; // Va au wp 10, puis 11, puis 12, puis retourne à la base 0.
     
     // NOUVEAU: Variables d'état pour la navigation
     RobotState currentState = IDLE;
@@ -100,12 +103,12 @@ int main()
     bool hasPosition = false; // Devient vrai si on a détecté au moins un marqueur
 
     // NOUVEAU: Paramètres de navigation
-    const float arrival_threshold = 0.20f; // Seuil de distance pour considérer qu'on est arrivé (20cm)
+    const float arrival_threshold = 0.10f; // Seuil de distance pour considérer qu'on est arrivé (20cm)
     const float angle_threshold = 10.0f;   // Seuil d'angle pour considérer qu'on fait face à la cible (10 degrés)
 
     // ... (La partie initialisation de la carte pour l'affichage reste la même)
-    const int mapWidth = 700;
-    const int mapHeight = 700;
+    const int mapWidth = 800;
+    const int mapHeight = 800;
     Mat mapImage(mapHeight, mapWidth, CV_8UC3, Scalar(255, 255, 255));
     const float scale = 100.0f; // 1 mètre = 100 pixels
     const Point2f mapOrigin(mapWidth / 2.0f, mapHeight / 2.0f);
