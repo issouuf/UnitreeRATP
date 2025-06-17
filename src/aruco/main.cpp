@@ -1,267 +1,300 @@
 #include <iostream>
+#include <vector>
+#include <string>
+#include <cmath>
 #include <opencv2/opencv.hpp>
 #include <opencv2/objdetect/aruco_detector.hpp>
 #include "mqtt/async_client.h"
 
+// NOUVEAU: Inclure pour M_PI si ce n'est pas déjà défini
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 using namespace std;
 using namespace cv;
 
-
+// ... (vos constantes MQTT restent les mêmes)
 const string server_adress{"mqtt://localhost:1883"};
 const string client_id{"listener"};
 const string topic{"ordre/commande"};
 
 
+// NOUVEAU: Définir l'état du robot
+enum RobotState {
+    IDLE,              // En attente
+    NAVIGATING,        // En train de se diriger vers une cible
+    ARRIVED_AT_TARGET, // Vient d'arriver à la cible
+    MISSION_COMPLETE   // A terminé tous les points du chemin
+};
+
+// NOUVEAU: Définir les types de marqueurs
+enum MarkerType {
+    LOCALIZATION_ONLY, // Marqueur utilisé uniquement pour se localiser
+    WAYPOINT,          // Un point de passage dans une mission
+    TASK_STATION       // Un point où une action spécifique doit être effectuée
+};
+
+// MODIFIÉ: Structure pour les informations des marqueurs
+struct MarkerInfo {
+    Vec3d position;        // Position 3D dans le monde (x, y, z)
+    MarkerType type;       // Le type de marqueur
+    std::string task_command; // Commande MQTT à exécuter si c'est une station de tâche
+};
+
 int main()
 {
-    //connection MQTT
+    // ... (la connexion MQTT reste la même)
     mqtt::async_client client(server_adress, client_id);
     mqtt::connect_options connOpts = mqtt::connect_options_builder()
                                      .mqtt_version(MQTTVERSION_DEFAULT)
                                      .automatic_reconnect()
                                      .clean_session()
                                      .finalize();
-
-
-
     try {
-        // Connexion au broker
         cout << "Connexion au broker MQTT..." << endl;
-        mqtt::token_ptr conntok = client.connect(connOpts);
-        conntok->wait();
-        cout << "Connecté !" << endl;
-
-        // Créer un message à publier
-        /*
-        string payload = "programme Aruco"; 
-        mqtt::message_ptr pubmsg = mqtt::make_message(topic, payload);
-        pubmsg->set_qos(1);
-
-        // Publier le message
-        client.publish(pubmsg)->wait_for(std::chrono::seconds(10));
-        cout << "Message publié sur " << topic << ": " << payload << endl;
-
-        // Déconnexion propre
-        //client.disconnect()->wait();
-        //cout << "Déconnecté." << endl;
-
-
-        */
+        client.connect(connOpts)->wait();
+        cout << "Connecté !" << endl;
     } catch (const mqtt::exception& exc) {
         cerr << "Erreur MQTT : " << exc.what() << endl;
         return 1;
     }
 
-
-    // Charger les paramètres de calibration depuis un fichier YAML
+    // ... (le chargement de la calibration et l'ouverture de la caméra restent les mêmes)
     Mat cameraMatrix, distCoeffs;
     FileStorage fs("/home/pi/UnitreeRATP/src/aruco/calibration/camera_calibration.yml", FileStorage::READ);
-    if (!fs.isOpened()) {
-        cerr << "Erreur : impossible d'ouvrir le fichier de calibration." << endl;
-        return -1;
-    }
+    if (!fs.isOpened()) { cerr << "Erreur : impossible d'ouvrir le fichier de calibration." << endl; return -1; }
     fs["camera_matrix"] >> cameraMatrix;
     fs["distortion_coefficients"] >> distCoeffs;
     fs.release();
 
-    // Ouvrir la caméra
     VideoCapture cap(0, cv::CAP_V4L2);
-    if (!cap.isOpened()) {
-        cerr << "Erreur : impossible d'ouvrir la caméra." << endl;
-        return -1;
-    }
+    if (!cap.isOpened()) { cerr << "Erreur : impossible d'ouvrir la caméra." << endl; return -1; }
 
-    // Initialiser le détecteur ArUco
     aruco::Dictionary dictionary = aruco::getPredefinedDictionary(aruco::DICT_6X6_100);
     aruco::DetectorParameters detectorParams;
     aruco::ArucoDetector detector(dictionary, detectorParams);
+    
+    float markerLength = 0.1f; // 10cm
 
-    Mat frame, gray;
+    // MODIFIÉ: Base de données des marqueurs connus dans le monde
+    // Nous définissons ici la carte de l'environnement.
+    // Les positions sont en mètres.
+    map<int, MarkerInfo> markerDatabase = {
+        // ID, {Position(x,y,z)}, Type, Commande de tâche
+        {0, {Vec3d(0.0, 0.0, 0.0), TASK_STATION, "STOP"}}, // Base de départ / Arrêt d'urgence
+        {10, {Vec3d(2.0, 0.0, 0.0), WAYPOINT, ""}},          // Waypoint 1
+        {11, {Vec3d(2.0, 1.5, 0.0), WAYPOINT, ""}},          // Waypoint 2
+        {12, {Vec3d(0.0, 1.5, 0.0), TASK_STATION, "action_speciale_1"}}, // Station de tâche
+        {20, {Vec3d(1.0, 0.75, 0.0), LOCALIZATION_ONLY, ""}} // Marqueur juste pour se repérer
+    };
 
+    // NOUVEAU: Définir le plan de mission du robot
+    // C'est la séquence d'IDs de WAYPOINT ou TASK_STATION que le robot doit suivre.
+    vector<int> missionPath = {10, 11, 12, 0}; // Va au wp 10, puis 11, puis 12, puis retourne à la base 0.
+    
+    // NOUVEAU: Variables d'état pour la navigation
+    RobotState currentState = IDLE;
+    int missionIndex = -1; // Index actuel dans missionPath
+    Vec3d robotPose(0, 0, 0); // Position estimée du robot (x, y, heading_degrees)
+    bool hasPosition = false; // Devient vrai si on a détecté au moins un marqueur
 
-    bool base = false;
+    // NOUVEAU: Paramètres de navigation
+    const float arrival_threshold = 0.20f; // Seuil de distance pour considérer qu'on est arrivé (20cm)
+    const float angle_threshold = 10.0f;   // Seuil d'angle pour considérer qu'on fait face à la cible (10 degrés)
 
-
-// Définir une structure pour la position et la commande associée
-struct MarkerInfo {
-    Vec3d position;
-    std::string mqtt_command;
-};
-
-//position réelles des markers dans le monde en mètres + commande mqtt à envoyer
-map<int, MarkerInfo> markerWorldPositions = {
-    {0, {Vec3d(0.0, 0.0, 0.0), "STOP"}},
-    {1, {Vec3d(1.0, 0.0, 0.0), "avancer $100"}},
-    {2, {Vec3d(0.0, 1.0, 0.0), "gauche $90"}},
-    // Ajoutez d'autres marqueurs selon leur placement et commande
-};
-
-    float markerLength = 0.1f;
-
-
-
-
-    //*********************************************************************************
-
-    // Initialisation de la carte
+    // ... (La partie initialisation de la carte pour l'affichage reste la même)
     const int mapWidth = 700;
     const int mapHeight = 700;
     Mat mapImage(mapHeight, mapWidth, CV_8UC3, Scalar(255, 255, 255));
-    Mat mapImageCopy = mapImage.clone(); // Copie de l'image de fond
-
-
-    // Paramètres de la carte
     const float scale = 100.0f; // 1 mètre = 100 pixels
-    const Point2f mapOrigin(mapWidth / 2.0f, mapHeight / 2.0f); // Origine au centre
+    const Point2f mapOrigin(mapWidth / 2.0f, mapHeight / 2.0f);
 
-
-
-    // Dessiner les marqueurs sur la carte
-    for (const auto& marker : markerWorldPositions) {
+    for (const auto& marker : markerDatabase) {
         Point2f pos = mapOrigin + Point2f(marker.second.position[0] * scale, -marker.second.position[1] * scale);
-        circle(mapImage, pos, 5, Scalar(0, 0, 255), -1);
-        putText(mapImage, "ID: " + to_string(marker.first), pos + Point2f(5, -5),
-                FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 0), 1);
+        Scalar color = (marker.second.type == LOCALIZATION_ONLY) ? Scalar(128, 128, 128) : Scalar(0, 0, 255);
+        circle(mapImage, pos, 5, color, -1);
+        putText(mapImage, "ID: " + to_string(marker.first), pos + Point2f(5, -5), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 0), 1);
     }
+    Mat mapImageCopy;
 
-
-    //*********************************************************************************
-    bool ok = false; 
-
+    Mat frame;
     while (true) {
         cap >> frame;
-        if (frame.empty()) {
-            cerr << "Erreur : image vide capturée." << endl;
-            break;
-        }
+        if (frame.empty()) break;
 
-        cvtColor(frame, gray, COLOR_BGR2GRAY);
-
-
-
-
-
+        // --- DÉTECTION ET LOCALISATION (partie quasi inchangée) ---
         vector<int> markerIds;
-        vector<vector<Point2f>> markerCorners, rejectedCandidates;
-        detector.detectMarkers(gray, markerCorners, markerIds);
+        vector<vector<Point2f>> markerCorners;
+        detector.detectMarkers(frame, markerCorners, markerIds);
+        
+        vector<Vec3d> cameraPositions;
+        Vec3d robotOrientation(0,0,0); // On va aussi moyenner l'orientation
+        int markers_used_for_pose = 0;
 
         if (!markerIds.empty()) {
             aruco::drawDetectedMarkers(frame, markerCorners, markerIds);
 
-            vector<Vec3d> cameraPositions;
             for (size_t i = 0; i < markerIds.size(); ++i) {
                 int id = markerIds[i];
+                if (markerDatabase.find(id) == markerDatabase.end()) continue;
 
-                //---------------détection tag ordre et envoie des commandes avec mqtt---------------
-
-            auto markerIt = markerWorldPositions.find(id);
-            if(markerIt != markerWorldPositions.end() && !markerIt->second.mqtt_command.empty() && ok == false) {
-                cout << "tag ordre trouve: "<< id << endl;
-                cout << "commande envoyee: " << markerIt->second.mqtt_command << endl;
-                client.publish(topic, markerIt->second.mqtt_command);
-                ok = true; 
-            }
-
-
-                if (markerWorldPositions.find(id) == markerWorldPositions.end())
-                    continue;
-
-                // Définir les points 3D du marqueur dans son référentiel
                 vector<Point3f> objectPoints = {
-                    Point3f(-markerLength / 2.f,  markerLength / 2.f, 0),
-                    Point3f( markerLength / 2.f,  markerLength / 2.f, 0),
-                    Point3f( markerLength / 2.f, -markerLength / 2.f, 0),
-                    Point3f(-markerLength / 2.f, -markerLength / 2.f, 0)
+                    Point3f(-markerLength / 2.f,  markerLength / 2.f, 0), Point3f( markerLength / 2.f,  markerLength / 2.f, 0),
+                    Point3f( markerLength / 2.f, -markerLength / 2.f, 0), Point3f(-markerLength / 2.f, -markerLength / 2.f, 0)
                 };
 
-                // Estimer la pose du marqueur
                 Mat rvec, tvec;
-                bool success = solvePnP(objectPoints, markerCorners[i], cameraMatrix, distCoeffs, rvec, tvec);
-                if (!success)
-                    continue;
-
-                // Dessiner les axes du marqueur
+                if (!solvePnP(objectPoints, markerCorners[i], cameraMatrix, distCoeffs, rvec, tvec)) continue;
+                
                 drawFrameAxes(frame, cameraMatrix, distCoeffs, rvec, tvec, markerLength * 0.5f);
 
-                // Calculer la distance entre le marqueur et la caméra
-                double distance = norm(tvec) * 100.0; // en centimètres
-
-
-                if(distance <= 30.0 && id == 0) {
-                    client.publish(topic, "STOP");
-                    cout << "Commande STOP envoyée pour le marqueur ID: " << id << endl;
-                }
-
-                // Calculer l'angle entre l'axe Z du marqueur et celui de la caméra
                 Mat rotationMatrix;
                 Rodrigues(rvec, rotationMatrix);
-                Vec3d z_marker(rotationMatrix.at<double>(0,2), rotationMatrix.at<double>(1,2), rotationMatrix.at<double>(2,2));
-                Vec3d z_camera(0, 0, 1);
-                double angle_rad = acos(z_marker.dot(z_camera) / (norm(z_marker) * norm(z_camera)));
-                double angle_deg = angle_rad * 180.0 / CV_PI;
+                
+                // Position et orientation de la caméra par rapport au marqueur
+                Mat cameraPositionInMarkerFrame = -rotationMatrix.t() * tvec;
+                Mat cameraRotationInMarkerFrame = rotationMatrix.t();
 
-                // Calculer la position de la caméra dans le référentiel du marqueur
-                Mat cameraPosition = -rotationMatrix.t() * tvec;
+                // NOUVEAU: Calcul de l'orientation (cap) du robot
+                // On suppose que le robot regarde dans la direction Z de la caméra
+                // On calcule l'angle de cette direction dans le plan XY du monde
+                Vec3d z_axis_cam_in_marker_frame = {cameraRotationInMarkerFrame.at<double>(0,2), cameraRotationInMarkerFrame.at<double>(1,2), cameraRotationInMarkerFrame.at<double>(2,2)};
+                // Pour simplifier, on ignore l'orientation du marqueur lui-même (on suppose qu'ils sont tous alignés avec les axes du monde)
+                // Une version avancée prendrait en compte la rotation de chaque marqueur dans le monde.
+                
+                Vec3d markerPositionInWorld = markerDatabase[id].position;
+                Vec3d cameraPositionInWorld = markerPositionInWorld + Vec3d(cameraPositionInMarkerFrame);
+                
+                cameraPositions.push_back(cameraPositionInWorld);
 
-                // Position du marqueur dans le monde
-                Vec3d markerPosition = markerWorldPositions[id].position;
+                // Calcul du cap (heading) en degrés. atan2(y, x)
+                double heading_rad = atan2(z_axis_cam_in_marker_frame[1], z_axis_cam_in_marker_frame[0]);
+                robotOrientation += Vec3d(0, 0, heading_rad * 180.0 / M_PI); // On ne s'intéresse qu'au cap (autour de Z)
+                markers_used_for_pose++;
+            }
+        }
 
-                // Position de la caméra dans le monde
-                Vec3d cameraPositionWorld = markerPosition + Vec3d(cameraPosition);
+        hasPosition = false;
+        if (markers_used_for_pose > 0) {
+            Vec3d avgPosition(0, 0, 0);
+            for (const auto& pos : cameraPositions) avgPosition += pos;
+            avgPosition /= (double)markers_used_for_pose;
+            
+            Vec3d avgOrientation = robotOrientation / (double)markers_used_for_pose;
+            
+            robotPose = Vec3d(avgPosition[0], avgPosition[1], avgOrientation[2]);
+            hasPosition = true;
+        }
 
-                cameraPositions.push_back(cameraPositionWorld);
-
-                // Afficher les informations sur l'image
-                stringstream ss;
-                ss << "ID: " << id
-                   << " Dist: " << fixed << setprecision(2) << distance << "cm"
-                   << " Angle Z: " << fixed << setprecision(2) << angle_deg << "deg"
-                   << " Pos: (" << fixed << setprecision(2) << cameraPositionWorld[0]
-                   << ", " << cameraPositionWorld[1] << ")";
-                putText(frame, ss.str(), Point(10, 30 + 30 * i), FONT_HERSHEY_SIMPLEX, 0.6, Scalar(255, 0, 0), 2);
+        // --- NOUVEAU: LOGIQUE DE NAVIGATION AUTONOME ---
+        if (hasPosition) {
+            // Si on est en attente (IDLE), on commence la mission
+            if (currentState == IDLE) {
+                cout << "Lancement de la mission..." << endl;
+                missionIndex = 0;
+                currentState = NAVIGATING;
             }
 
-            // Calculer la position moyenne si plusieurs marqueurs sont détectés
-            if (!cameraPositions.empty()) {
-                Vec3d avgPosition(0, 0, 0);
-                for (const auto& pos : cameraPositions)
-                    avgPosition += pos;
-                avgPosition /= static_cast<double>(cameraPositions.size());
+            if (currentState == NAVIGATING) {
+                if (missionIndex >= missionPath.size()) {
+                    cout << "Mission terminée !" << endl;
+                    client.publish(topic, "STOP");
+                    currentState = MISSION_COMPLETE;
+                } else {
+                    int targetId = missionPath[missionIndex];
+                    Vec3d targetPose = markerDatabase[targetId].position;
 
-                stringstream ss;
-                ss << "Position moyenne: (" << fixed << setprecision(2) << avgPosition[0]
-                   << ", " << avgPosition[1] << ")";
-                putText(frame, ss.str(), Point(10, 30 + 30 * markerIds.size()), FONT_HERSHEY_SIMPLEX, 0.6, Scalar(0, 255, 0), 2);
+                    // Calcul du vecteur vers la cible
+                    Vec3d vectorToTarget = targetPose - Vec3d(robotPose[0], robotPose[1], 0);
+                    double distanceToTarget = norm(vectorToTarget);
 
+                    cout << "Cible: ID " << targetId << " | Distance: " << fixed << setprecision(2) << distanceToTarget << "m" << endl;
 
+                    // 1. Vérifier si on est arrivé
+                    if (distanceToTarget < arrival_threshold) {
+                        cout << "Arrivé à la cible ID " << targetId << endl;
+                        currentState = ARRIVED_AT_TARGET;
+                    } else {
+                        // 2. Si non, on navigue: s'orienter puis avancer
+                        double angleToTarget_rad = atan2(vectorToTarget[1], vectorToTarget[0]);
+                        double angleToTarget_deg = angleToTarget_rad * 180.0 / M_PI;
 
-                // Affichage de la position moyenne sur la carte
-                mapImageCopy = mapImage.clone();
-                Point2f avgCameraPosOnMap = mapOrigin + Point2f(avgPosition[0] * scale, -avgPosition[1] * scale);
-                circle(mapImageCopy, avgCameraPosOnMap, 5, Scalar(0, 255, 0), -1);
-                putText(mapImageCopy, "Camera (avg)", avgCameraPosOnMap + Point2f(5, -5),
-                        FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 0), 1);
+                        double headingError_deg = angleToTarget_deg - robotPose[2];
+                        
+                        // Normaliser l'erreur d'angle entre -180 et 180
+                        while (headingError_deg > 180) headingError_deg -= 360;
+                        while (headingError_deg < -180) headingError_deg += 360;
 
-                imshow("Carte en temps réel", mapImageCopy);
+                        cout << "Cap robot: " << robotPose[2] << " | Cap cible: " << angleToTarget_deg << " | Erreur: " << headingError_deg << endl;
+                        
+                        string command = "";
+                        // 2a. D'abord, corriger l'orientation
+                        if (abs(headingError_deg) > angle_threshold) {
+                            if (headingError_deg > 0) {
+                                command = "gauche $" + to_string(static_cast<int>(headingError_deg));
+                            } else {
+                                command = "droite $" + to_string(static_cast<int>(abs(headingError_deg)));
+                            }
+                        } else {
+                        // 2b. Une fois bien orienté, avancer
+                            command = "avancer $" + to_string(static_cast<int>(distanceToTarget * 100)); // ex: avancer $150 (cm)
+                        }
 
-
+                        cout << "Commande envoyee: " << command << endl;
+                        client.publish(topic, command);
+                    }
+                }
             }
+            
+            if (currentState == ARRIVED_AT_TARGET) {
+                 client.publish(topic, "STOP"); // S'arrêter en arrivant
+                
+                int currentTargetId = missionPath[missionIndex];
+                MarkerInfo targetInfo = markerDatabase[currentTargetId];
 
+                // Si c'est une station de tâche, exécuter la commande
+                if(targetInfo.type == TASK_STATION && !targetInfo.task_command.empty()){
+                    cout << "Execution de la tache: " << targetInfo.task_command << endl;
+                    client.publish(topic, targetInfo.task_command);
+                    // Mettre une pause pour laisser le temps à la tâche de s'exécuter
+                    this_thread::sleep_for(chrono::seconds(3));
+                }
+
+                // Passer à la cible suivante
+                missionIndex++;
+                currentState = NAVIGATING;
+            }
+        } else {
+             cout << "En attente de localisation..." << endl;
+        }
+
+        // --- AFFICHAGE (partie quasi inchangée) ---
+        if(hasPosition){
+             mapImageCopy = mapImage.clone();
+             Point2f robotPosOnMap = mapOrigin + Point2f(robotPose[0] * scale, -robotPose[1] * scale);
+             circle(mapImageCopy, robotPosOnMap, 7, Scalar(0, 255, 0), -1); // Robot en vert
+             
+             // Dessiner le cap du robot
+             Point2f headingEndPoint;
+             headingEndPoint.x = robotPosOnMap.x + 20 * cos(robotPose[2] * M_PI / 180.0);
+             headingEndPoint.y = robotPosOnMap.y - 20 * sin(robotPose[2] * M_PI / 180.0); // Y inversé sur la carte
+             line(mapImageCopy, robotPosOnMap, headingEndPoint, Scalar(255, 0, 0), 2); // Cap en bleu
+
+             imshow("Carte en temps réel", mapImageCopy);
         }
 
         imshow("Détection ArUco", frame);
-        //namedWindow("camera", WINDOW_NORMAL);
-        //resizeWindow("camera",200,200);
-        //imshow("camera", frame);
         if (waitKey(1) == 'q') break;
     }
 
     cap.release();
     destroyAllWindows();
+    client.disconnect()->wait();
+    cout << "Déconnecté." << endl;
 
     return 0;
 }
-
 
 
 
