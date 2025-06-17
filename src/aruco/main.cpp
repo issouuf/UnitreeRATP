@@ -65,7 +65,7 @@ int main()
     const float STOP_DISTANCE = 0.30f; // 30 cm
     
     // Seuil d'angle (en degrés). Si l'angle est supérieur, le robot tourne. Sinon, il avance.
-    const float ANGLE_THRESHOLD_DEGREES = 8.0f;
+    const float ANGLE_THRESHOLD_DEGREES = 3.0f;
 
 
     Mat frame;
@@ -130,7 +130,7 @@ int main()
                     if (angle_deg < 0) { // Si l'angle est négatif, la cible est à droite
                         command = "droite $" + to_string(static_cast<int>(abs(angle_deg)));
                     } else { // Sinon, elle est à gauche
-                        command = "gauche $" + to_string(static_cast<int>(angle_deg));
+                        command = "gauche $" + to_string(static_cast<int>(-angle_deg));
                     }
                 } 
                 // 2. Si l'angle est bon, on ajuste la distance

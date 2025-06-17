@@ -160,17 +160,17 @@ void UnitreeGo1::MoveBackwardsBy(float millimeters)
 float UnitreeGo1::GetX()
 {
     // Implement logic to get X position for Unitree Go 1
-    return 0.0f; // Simulate X position
+    return xPosition; // Simulate X position
 }
 float UnitreeGo1::GetY()
 {
     // Implement logic to get Y position for Unitree Go 1
-    return 0.0f; // Simulate Y position
+    return yPosition; // Simulate Y position
 }
 float UnitreeGo1::GetZ()
 {
     // Implement logic to get Z position for Unitree Go 1
-    return 0.0f; // Simulate Z position
+    return zPosition; // Simulate Z position
 }
 
 // Implement IMovement.hpp

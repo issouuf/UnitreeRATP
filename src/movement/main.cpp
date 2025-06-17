@@ -86,9 +86,10 @@ void handleArucoMovementCB(mqtt::const_message_ptr msg, UnitreeGo1 &robot)
 
             if (commande == "STOP")
             {
-                robot.IsMarkerReached = true;
-                robot.MoveX(0.0f);
-                robot.MoveY(0.0f);
+                if (robot.IsMarkerReached) robot.IsMarkerReached = true;
+                if (robot.GetZ() != 0.0f) robot.MoveZ(0.0f);
+                if (robot.GetX() != 0.0f) robot.MoveX(0.0f);
+                if (robot.GetY() != 0.0f) robot.MoveY(0.0f);
                 std::cout << "[OK] Stopping the robot." << std::endl;
                 return;
             }
