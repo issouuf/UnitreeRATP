@@ -103,7 +103,6 @@ void UnitreeGo1::MoveXYZ(float xMillimeters, float yMillimeters, float angle)
     yPosition = scaleMillimetersToNormals(yMillimeters);
     zPosition = scaleAngleToNormals(angle);
 
-
     if (!moveThread.joinable())
     {
         moveThread = std::thread(&UnitreeGo1::moveUntilMarkerThread, this);
@@ -113,17 +112,29 @@ void UnitreeGo1::MoveXYZ(float xMillimeters, float yMillimeters, float angle)
 void UnitreeGo1::MoveX(float millimeters)
 {
     xPosition = scaleMillimetersToNormals(millimeters);
-    Topics::controller::Publishers::stick::cbPublishMessage(*client, xPosition, zPosition, 0.0f, yPosition);
+    if (!moveThread.joinable())
+    {
+        moveThread = std::thread(&UnitreeGo1::moveUntilMarkerThread, this);
+        moveThread.detach();
+    }
 }
 void UnitreeGo1::MoveY(float millimeters)
 {
     yPosition = scaleMillimetersToNormals(millimeters);
-    Topics::controller::Publishers::stick::cbPublishMessage(*client, xPosition, zPosition, 0.0f, yPosition);
+    if (!moveThread.joinable())
+    {
+        moveThread = std::thread(&UnitreeGo1::moveUntilMarkerThread, this);
+        moveThread.detach();
+    }
 }
 void UnitreeGo1::MoveZ(float millimeters)
 {
     zPosition = scaleAngleToNormals(millimeters);
-    Topics::controller::Publishers::stick::cbPublishMessage(*client, xPosition, zPosition, 0.0f, yPosition);
+    if (!moveThread.joinable())
+    {
+        moveThread = std::thread(&UnitreeGo1::moveUntilMarkerThread, this);
+        moveThread.detach();
+    }
 }
 void UnitreeGo1::MoveLeftBy(float millimeters)
 {
@@ -204,12 +215,14 @@ void UnitreeGo1::changeHeadColorThread(int sleepTimeMillis)
 
 void UnitreeGo1::moveUntilMarkerThread()
 {
+    std::cout << "test" << std::endl;
     while (!IsMarkerReached && IsAllowedToMove && IsConnected && !IsDisconnectRequested)
     {
         IsMoving = true;
-        
+
         std::cout << "Moving to position: X=" << xPosition << ", Y=" << yPosition << ", Z=" << zPosition << std::endl;
         mqtt::delivery_token_ptr rToken = Topics::controller::Publishers::stick::cbPublishMessage(*client, xPosition, zPosition, 0.0f, yPosition);
+        std::cout << "Awaiting response";
         if (rToken != nullptr)
         {
             rToken->wait();

@@ -40,7 +40,8 @@ struct Topics
 
                 static mqtt::delivery_token_ptr cbPublishMessage(mqtt::async_client &mqttClient, const float deplacementVertical = 0.0f, const float rotation = 0.0f, const float ignore = 0.0f, const float deplacementHorizontal = 0.0f)
                 {
-                    float stick_values[4] = {deplacementVertical, rotation, ignore, deplacementHorizontal};
+                    if (&mqttClient != nullptr && mqttClient.is_connected()) {
+                        float stick_values[4] = {deplacementVertical, rotation, ignore, deplacementHorizontal};
                     for (static unsigned char index = 0; index < 4; index++)
                     {
                         if (stick_values[index] > 1.0f)
@@ -57,7 +58,9 @@ struct Topics
                     }
                     catch (...)
                     {
+                        std::cout << "Error when sending movement";
                         return nullptr;
+                    }
                     }
                 }
             };

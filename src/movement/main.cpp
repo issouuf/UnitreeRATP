@@ -96,6 +96,7 @@ void handleArucoMovementCB(mqtt::const_message_ptr msg, UnitreeGo1 &robot)
             size_t pos = commande.find('$');
             if (pos != std::string::npos)
             {
+                robot.IsMarkerReached = false;
                 std::cout << "Substringing command : " << commande << std::endl;
                 std::string order = commande.substr(0, pos - 1); // -1 to remove the space before $
                 float value = std::stof(commande.substr(pos + 1));

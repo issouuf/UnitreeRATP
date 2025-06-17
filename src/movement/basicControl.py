@@ -20,7 +20,7 @@ client.publish("controller/action", "walk")
 # -1 = Arrière à fond (~1m)
 #  1 = Avant à fond (~1m)
 
-# while True:
-#     payload = struct.pack('<ffff', 0.0, 0.0, 0.0, 0.0)
-#     client.publish("controller/stick", payload)
-#     time.sleep(4)
+while True:
+   payload = struct.pack('<ffff', 0.0, 0.0, 0.0, 0.0)
+   client.publish("controller/stick", payload)
+   time.sleep(4)
