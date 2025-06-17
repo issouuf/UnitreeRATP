@@ -6,6 +6,186 @@
 #include <opencv2/objdetect/aruco_detector.hpp>
 #include "mqtt/async_client.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+using namespace std;
+using namespace cv;
+
+// --- Constantes MQTT ---
+const string server_adress{"mqtt://localhost:1883"};
+const string client_id{"follower_robot"};
+const string topic{"ordre/commande"};
+
+
+int main()
+{
+    // --- Connexion MQTT ---
+    mqtt::async_client client(server_adress, client_id);
+    mqtt::connect_options connOpts = mqtt::connect_options_builder()
+                                     .mqtt_version(MQTTVERSION_DEFAULT)
+                                     .automatic_reconnect()
+                                     .clean_session()
+                                     .finalize();
+    try {
+        cout << "Connexion au broker MQTT..." << endl;
+        client.connect(connOpts)->wait();
+        cout << "Connecté !" << endl;
+    } catch (const mqtt::exception& exc) {
+        cerr << "Erreur MQTT : " << exc.what() << endl;
+        return 1;
+    }
+
+    // --- Initialisation de la caméra et de la calibration ---
+    Mat cameraMatrix, distCoeffs;
+    FileStorage fs("/home/pi/UnitreeRATP/src/aruco/calibration/camera_calibration.yml", FileStorage::READ);
+    if (!fs.isOpened()) { cerr << "Erreur : impossible d'ouvrir le fichier de calibration." << endl; return -1; }
+    fs["camera_matrix"] >> cameraMatrix;
+    fs["distortion_coefficients"] >> distCoeffs;
+    fs.release();
+
+    VideoCapture cap(0, cv::CAP_V4L2);
+    if (!cap.isOpened()) { cerr << "Erreur : impossible d'ouvrir la caméra." << endl; return -1; }
+
+    // --- Initialisation du détecteur ArUco ---
+    aruco::Dictionary dictionary = aruco::getPredefinedDictionary(aruco::DICT_6X6_100);
+    aruco::DetectorParameters detectorParams;
+    aruco::ArucoDetector detector(dictionary, detectorParams);
+    
+    // La taille physique réelle de votre marqueur, en MÈTRES.
+    float markerLength = 0.1f; // 10cm
+
+    // --- NOUVEAU: Paramètres pour le mode "suivi" ---
+    
+    // L'ID du marqueur que le robot doit suivre. Changez cette valeur au besoin.
+    const int FOLLOW_TAG_ID = 10; 
+    
+    // Distance (en mètres) à laquelle le robot s'arrêtera devant le tag.
+    const float STOP_DISTANCE = 0.30f; // 30 cm
+    
+    // Seuil d'angle (en degrés). Si l'angle est supérieur, le robot tourne. Sinon, il avance.
+    const float ANGLE_THRESHOLD_DEGREES = 8.0f;
+
+
+    Mat frame;
+    while (true) {
+        cap >> frame;
+        if (frame.empty()) break;
+
+        // --- Détection des marqueurs ---
+        vector<int> markerIds;
+        vector<vector<Point2f>> markerCorners;
+        detector.detectMarkers(frame, markerCorners, markerIds);
+        
+        // On dessine tous les marqueurs détectés pour le débogage visuel
+        if (!markerIds.empty()){
+            aruco::drawDetectedMarkers(frame, markerCorners, markerIds);
+        }
+
+        // --- NOUVEAU: Logique de suivi de cible ---
+        
+        bool target_found = false;
+        
+        // On parcourt les IDs détectés pour trouver notre cible
+        for (size_t i = 0; i < markerIds.size(); ++i) {
+            if (markerIds[i] == FOLLOW_TAG_ID) {
+                target_found = true;
+
+                // --- On a trouvé notre cible, on estime sa pose ---
+                vector<Point3f> objectPoints = {
+                    Point3f(-markerLength / 2.f,  markerLength / 2.f, 0), Point3f( markerLength / 2.f,  markerLength / 2.f, 0),
+                    Point3f( markerLength / 2.f, -markerLength / 2.f, 0), Point3f(-markerLength / 2.f, -markerLength / 2.f, 0)
+                };
+
+                Mat rvec, tvec;
+                if (!solvePnP(objectPoints, markerCorners[i], cameraMatrix, distCoeffs, rvec, tvec)) {
+                    continue; // Si l'estimation échoue, on passe à l'image suivante
+                }
+                
+                // On dessine les axes sur le tag cible pour mieux visualiser
+                drawFrameAxes(frame, cameraMatrix, distCoeffs, rvec, tvec, markerLength);
+
+                // --- On calcule la distance et l'angle par rapport au tag ---
+                // tvec contient la position du tag dans le repère de la caméra.
+                // tvec.at<double>(0) -> Axe X (gauche/droite)
+                // tvec.at<double>(1) -> Axe Y (haut/bas)
+                // tvec.at<double>(2) -> Axe Z (avant/arrière)
+
+                double distance_m = tvec.at<double>(2); // La distance est la profondeur sur l'axe Z
+                
+                // L'angle est calculé à partir du déplacement sur l'axe X et de la distance Z
+                double angle_rad = atan2(tvec.at<double>(0), tvec.at<double>(2));
+                double angle_deg = angle_rad * 180.0 / M_PI;
+
+                cout << "Cible ID " << FOLLOW_TAG_ID << " trouvée | "
+                     << "Distance: " << fixed << setprecision(2) << distance_m << "m | "
+                     << "Angle: " << fixed << setprecision(2) << angle_deg << " deg" << endl;
+
+                // --- On génère la commande MQTT ---
+                string command = "";
+
+                // 1. D'abord, on corrige l'angle
+                if (abs(angle_deg) > ANGLE_THRESHOLD_DEGREES) {
+                    if (angle_deg < 0) { // Si l'angle est négatif, la cible est à droite
+                        command = "droite $" + to_string(static_cast<int>(abs(angle_deg)));
+                    } else { // Sinon, elle est à gauche
+                        command = "gauche $" + to_string(static_cast<int>(angle_deg));
+                    }
+                } 
+                // 2. Si l'angle est bon, on ajuste la distance
+                else if (distance_m > STOP_DISTANCE) {
+                    // La commande avance d'une valeur proportionnelle à la distance restante
+                    command = "avancer $" + to_string(static_cast<int>((distance_m - STOP_DISTANCE) * 100)); // en cm
+                }
+                // 3. Si on est bien aligné ET à la bonne distance, on s'arrête
+                else {
+                    command = "STOP";
+                }
+                
+                cout << "Commande envoyée: " << command << endl;
+                client.publish(topic, command);
+                
+                // On a trouvé et traité notre cible, on peut sortir de la boucle de recherche
+                break; 
+            }
+        }
+
+        // Si, après avoir parcouru tous les marqueurs, on n'a pas trouvé notre cible
+        if (!target_found) {
+            cout << "Cible ID " << FOLLOW_TAG_ID << " non visible. Arrêt du robot." << endl;
+            client.publish(topic, "STOP");
+        }
+
+
+        // --- Affichage de la vidéo ---
+        imshow("Robot Follower - Vue Caméra", frame);
+        if (waitKey(1) == 'q') {
+            break;
+        }
+    }
+
+    // --- Nettoyage ---
+    cout << "Arrêt du programme. Commande STOP finale." << endl;
+    client.publish(topic, "STOP");
+    cap.release();
+    destroyAllWindows();
+    client.disconnect()->wait();
+    cout << "Déconnecté." << endl;
+
+    return 0;
+}
+
+
+/*
+#include <iostream>
+#include <vector>
+#include <string>
+#include <cmath>
+#include <opencv2/opencv.hpp>
+#include <opencv2/objdetect/aruco_detector.hpp>
+#include "mqtt/async_client.h"
+
 // NOUVEAU: Inclure pour M_PI si ce n'est pas déjà défini
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -301,7 +481,7 @@ int main()
 
 
 
-
+*/
 
 
 
