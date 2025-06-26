@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <iomanip> // Pour std::setprecision et std::fixed
 #include <opencv2/opencv.hpp>
 #include <opencv2/objdetect/aruco_detector.hpp>
 #include "mqtt/async_client.h"
@@ -56,17 +57,15 @@ int main()
     // La taille physique réelle de votre marqueur, en MÈTRES.
     float markerLength = 0.1f; // 10cm
 
-    // --- NOUVEAU: Paramètres pour le mode "suivi" ---
-    
-    // L'ID du marqueur que le robot doit suivre. Changez cette valeur au besoin.
+    // --- Paramètres pour le mode "suivi" ---
     const int FOLLOW_TAG_ID = 10; 
-    
-    // Distance (en mètres) à laquelle le robot s'arrêtera devant le tag.
     const float STOP_DISTANCE = 0.30f; // 30 cm
-    
-    // Seuil d'angle (en degrés). Si l'angle est supérieur, le robot tourne. Sinon, il avance.
     const float ANGLE_THRESHOLD_DEGREES = 3.0f;
 
+    // --- NOUVEAU: Variable d'état pour suivre l'état du robot ---
+    // true si le robot est (ou devrait être) à l'arrêt.
+    // On l'initialise à true car le robot est à l'arrêt au démarrage.
+    bool is_robot_stopped = true; 
 
     Mat frame;
     while (true) {
@@ -78,21 +77,18 @@ int main()
         vector<vector<Point2f>> markerCorners;
         detector.detectMarkers(frame, markerCorners, markerIds);
         
-        // On dessine tous les marqueurs détectés pour le débogage visuel
         if (!markerIds.empty()){
             aruco::drawDetectedMarkers(frame, markerCorners, markerIds);
         }
 
-        // --- NOUVEAU: Logique de suivi de cible ---
-        
+        // --- Logique de suivi de cible ---
         bool target_found = false;
         
-        // On parcourt les IDs détectés pour trouver notre cible
         for (size_t i = 0; i < markerIds.size(); ++i) {
             if (markerIds[i] == FOLLOW_TAG_ID) {
                 target_found = true;
 
-                // --- On a trouvé notre cible, on estime sa pose ---
+                // --- Estimation de la pose de la cible ---
                 vector<Point3f> objectPoints = {
                     Point3f(-markerLength / 2.f,  markerLength / 2.f, 0), Point3f( markerLength / 2.f,  markerLength / 2.f, 0),
                     Point3f( markerLength / 2.f, -markerLength / 2.f, 0), Point3f(-markerLength / 2.f, -markerLength / 2.f, 0)
@@ -100,21 +96,13 @@ int main()
 
                 Mat rvec, tvec;
                 if (!solvePnP(objectPoints, markerCorners[i], cameraMatrix, distCoeffs, rvec, tvec)) {
-                    continue; // Si l'estimation échoue, on passe à l'image suivante
+                    continue; 
                 }
                 
-                // On dessine les axes sur le tag cible pour mieux visualiser
                 drawFrameAxes(frame, cameraMatrix, distCoeffs, rvec, tvec, markerLength);
 
-                // --- On calcule la distance et l'angle par rapport au tag ---
-                // tvec contient la position du tag dans le repère de la caméra.
-                // tvec.at<double>(0) -> Axe X (gauche/droite)
-                // tvec.at<double>(1) -> Axe Y (haut/bas)
-                // tvec.at<double>(2) -> Axe Z (avant/arrière)
-
-                double distance_m = tvec.at<double>(2); // La distance est la profondeur sur l'axe Z
-                
-                // L'angle est calculé à partir du déplacement sur l'axe X et de la distance Z
+                // --- Calcul de la distance et de l'angle ---
+                double distance_m = tvec.at<double>(2);
                 double angle_rad = atan2(tvec.at<double>(0), tvec.at<double>(2));
                 double angle_deg = angle_rad * 180.0 / M_PI;
 
@@ -122,43 +110,55 @@ int main()
                      << "Distance: " << fixed << setprecision(2) << distance_m << "m | "
                      << "Angle: " << fixed << setprecision(2) << angle_deg << " deg" << endl;
 
-                // --- On génère la commande MQTT ---
+                // --- Génération de la commande MQTT ---
                 string command = "";
 
-                // 1. D'abord, on corrige l'angle
                 if (abs(angle_deg) > ANGLE_THRESHOLD_DEGREES) {
-                    if (angle_deg < 0) { // Si l'angle est négatif, la cible est à droite
+                    if (angle_deg < 0) {
                         command = "droite $" + to_string(static_cast<int>(abs(angle_deg)));
-                    } else { // Sinon, elle est à gauche
-                        command = "gauche $" + to_string(static_cast<int>(-angle_deg));
+                    } else {
+                        command = "gauche $" + to_string(static_cast<int>(abs(angle_deg))); // Angle négatif pour la commande 'gauche'
                     }
                 } 
-                // 2. Si l'angle est bon, on ajuste la distance
                 else if (distance_m > STOP_DISTANCE) {
-                    // La commande avance d'une valeur proportionnelle à la distance restante
-                    command = "avancer $" + to_string(static_cast<int>((distance_m - STOP_DISTANCE) * 100)); // en cm
+                    command = "avancer $" + to_string(static_cast<int>((distance_m - STOP_DISTANCE) * 100));
                 }
-                // 3. Si on est bien aligné ET à la bonne distance, on s'arrête
                 else {
                     command = "STOP";
                 }
                 
-                cout << "Commande envoyée: " << command << endl;
-                client.publish(topic, command);
+                // --- MODIFIÉ: Logique d'envoi de la commande avec état ---
+                if (command == "STOP") {
+                    // Si on doit s'arrêter, on envoie la commande SEULEMENT si le robot n'était pas déjà à l'arrêt.
+                    if (!is_robot_stopped) {
+                        cout << "Cible atteinte. Envoi de la commande: " << command << endl;
+                        client.publish(topic, command);
+                        is_robot_stopped = true; // On met à jour l'état: le robot est maintenant arrêté.
+                    }
+                } else {
+                    // Si on doit bouger, on envoie la commande.
+                    cout << "Commande envoyée: " << command << endl;
+                    client.publish(topic, command);
+                    is_robot_stopped = false; // On met à jour l'état: le robot est maintenant en mouvement.
+                }
                 
-                // On a trouvé et traité notre cible, on peut sortir de la boucle de recherche
                 break; 
             }
         }
 
-        // Si, après avoir parcouru tous les marqueurs, on n'a pas trouvé notre cible
+        // --- MODIFIÉ: Si la cible n'est pas trouvée ---
         if (!target_found) {
-            cout << "Cible ID " << FOLLOW_TAG_ID << " non visible. Arrêt du robot." << endl;
-            client.publish(topic, "STOP");
+            // On envoie la commande STOP SEULEMENT si le robot était en mouvement.
+            if (!is_robot_stopped) {
+                cout << "Cible ID " << FOLLOW_TAG_ID << " non visible. Envoi de la commande STOP." << endl;
+                client.publish(topic, "STOP");
+                is_robot_stopped = true; // Mise à jour de l'état.
+            } else {
+                // Si le robot est déjà à l'arrêt, on ne fait rien, on peut juste l'afficher pour le debug.
+                cout << "Cible ID " << FOLLOW_TAG_ID << " non visible. Robot déjà à l'arrêt." << endl;
+            }
         }
 
-
-        // --- Affichage de la vidéo ---
         imshow("Robot Follower - Vue Caméra", frame);
         if (waitKey(1) == 'q') {
             break;
@@ -166,8 +166,9 @@ int main()
     }
 
     // --- Nettoyage ---
-    cout << "Arrêt du programme. Commande STOP finale." << endl;
-    client.publish(topic, "STOP");
+    cout << "Arrêt du programme. Envoi d'une commande STOP finale par sécurité." << endl;
+    // On envoie une dernière commande STOP quoi qu'il arrive pour être sûr.
+    client.publish(topic, "STOP")->wait();
     cap.release();
     destroyAllWindows();
     client.disconnect()->wait();
