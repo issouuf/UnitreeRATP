@@ -39,16 +39,25 @@ bool UnitreeGo1::Connect()
     // Implement connection logic specific to Unitree Go 1
     try
     {
+        std::cout << "[INFO] Trying to connect to " << IPAdress << " on port " << Port << "." << std::endl;
         mqtt::token_ptr waitToken = client->connect(CONNECTION_OPTIONS);
         waitToken->wait();
     }
     catch (const mqtt::exception &e)
     {
-        std::cout << "Connection failed: " << e.what() << std::endl;
+        std::cout << "[ERROR] Connection failed due to an exception: " << e.what() << std::endl;
         return false;
     }
+
+    IsConnected = client->is_connected();
+    if (IsConnected) {
+        std::cout << "[OK] Connected to the drone !" << std::endl;
+    }
+    else {
+        std::cout << "[INFO] COuld not connect to the drone !" << std::endl;
+    }
+
     IsDisconnectRequested = false;
-    IsConnected = true; // Simulate successful connection
     return IsConnected;
 }
 
@@ -254,3 +263,5 @@ float UnitreeGo1::scaleAngleToNormals(float angle)
 {
     return angle / 180.0;
 }
+
+

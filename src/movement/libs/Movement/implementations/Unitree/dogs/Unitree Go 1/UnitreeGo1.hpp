@@ -36,13 +36,14 @@ class UnitreeGo1 : public IUnitreeMovement {
     float xPosition = 0.0f;
     float yPosition = 0.0f;
     float zPosition = 0.0f;
-    static constexpr const char* FACTORY_UNITREE_GO_1_DEFAULT_IP_ADDRESS = "192.168.12.1";
+    static constexpr const char* FACTORY_UNITREE_GO_1_DEFAULT_IP_ADDRESS = "192.168.123.161";
     static constexpr u_int16_t FACTORY_UNITREE_GO_1_DEFAULT_MQTT_PORT = 1883;
+
 
     std::string CLIENT_ID {"RATP_UnitreeGo1"};
 
     mqtt::connect_options CONNECTION_OPTIONS = mqtt::connect_options_builder()
-        .automatic_reconnect()
+        .automatic_reconnect(true)
         .keep_alive_interval(std::chrono::seconds(20))
         .clean_session()
         .finalize();

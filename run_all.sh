@@ -4,9 +4,9 @@
 set -e
 
 # Paths to each program
-LIDAR_DIR="/home/pi/UnitreeRATP/src/lidar"
-ARUCO_DIR="/home/pi/UnitreeRATP/src/aruco"
-MOVEMENT_DIR="/home/pi/UnitreeRATP/src/movement"
+LIDAR_DIR="$(pwd)/src/lidar"
+ARUCO_DIR="$(pwd)/src/aruco"
+MOVEMENT_DIR="$(pwd)/src/movement"
 
 # Executable names (from CMakeLists.txt)
 LIDAR_EXE="lidar_mqtt"
